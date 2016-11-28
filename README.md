@@ -1,3 +1,3 @@
 # trex-rewrite-nodejs
 
-Implement an HTTP proxy with NodeJs for TRexRewrite.
+Implement an HTTP proxy with NodeJs and Neon for TRexRewrite.
