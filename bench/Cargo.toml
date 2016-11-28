@@ -1,0 +1,13 @@
+[package]
+name = "benchmarks"
+version = "0.1.0"
+
+[dependencies]
+chrono = "^0.2"
+rusqlite = "^0.7"
+rand = "^0.3"
+clap = "^2"
+num_cpus = "^1"
+regex = "^0.1"
+tesla = { path = "../tesla/" }
+trex = { path = "../trex/" }
