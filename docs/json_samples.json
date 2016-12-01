@@ -10,3 +10,8 @@
 {
   "operation": "get_notification"
 }
+
+/*Subscribe*/
+{
+  "operation": "subscribe"
+}
