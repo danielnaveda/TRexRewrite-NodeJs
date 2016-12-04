@@ -31,6 +31,7 @@ use std::sync::{Mutex, Once, ONCE_INIT};
 use std::{mem, thread};
 
 use global_vector::{m_subscribe, m_publish, m_get_publish};
+use conn_queues::{insert_queue, pop_queue, print_queue_status};
 
 #[derive(Clone)]
 struct SingletonReader {
@@ -72,6 +73,19 @@ impl Listener for DebugListener2 {
 }
 
 #[derive(Clone, Debug)]
+pub struct QueueListener{
+    connID: String,
+}
+
+impl Listener for QueueListener {
+    fn receive(&mut self, event: &Arc<Event>) {
+        println!("Queue Listener: {:?}", event);
+        println!("Queue Listener self.connID.to_owned() => {:?}", self.connID.to_owned());
+        insert_queue(self.connID.to_owned(), ( 15 as i32));
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct queue_struct;
 impl Listener for queue_struct {
     fn receive(&mut self, event: &Arc<Event>) {
@@ -95,11 +109,13 @@ impl Listener for queue_struct {
 
 ///////////////
 pub fn initialize(){
+    println!("initialize");
     let engine = singleton();
     m_subscribe();
 }
 
 pub fn declareEvent(event_id: usize, event_name: &str, event_vector: Vec<AttributeDeclaration>){
+    println!("declareEvent");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
     engine.declare(TupleDeclaration {
@@ -111,6 +127,7 @@ pub fn declareEvent(event_id: usize, event_name: &str, event_vector: Vec<Attribu
 }
 
 pub fn defineRule(rule_predicate: Vec<Predicate>, r_e_template: EventTemplate){
+    println!("defineRule");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
     engine.define(Rule {
@@ -200,20 +217,35 @@ pub fn defineRule(rule_predicate: Vec<Predicate>, r_e_template: EventTemplate){
 }
 
 //TODO: implement a listener
-pub fn subscribe() -> usize {
+// pub fn subscribe() -> usize {
+//     let s = singleton();
+//     let mut engine = s.inner.lock().unwrap();
+//     // engine.subscribe(Box::new(DebugListener))
+//     engine.subscribe(Box::new(DebugListener2))
+// }
+pub fn subscribe(connID: String) -> usize {
+    println!("subscribe");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
-    // engine.subscribe(Box::new(DebugListener))
-    engine.subscribe(Box::new(DebugListener2))
+
+    // let queueL = Box::new(QueueListener{connID : String::from("asfa")});
+
+    // engine.subscribe(Box::new(DebugListener2))
+    engine.subscribe(Box::new(QueueListener{connID : connID}))
+    // engine.subscribe(queueL)
+
+    //Take connID and create a listener for that
 }
 
 pub fn unsubscribe(id: &usize){
+    println!("unsubscribe");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
     engine.unsubscribe(id);
 }
 
 pub fn publish(type_id: usize, data_event : Vec<Value>){
+    println!("publish");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
     engine.publish(&Arc::new(Event {
@@ -239,7 +271,15 @@ pub fn publish(type_id: usize, data_event : Vec<Value>){
 }
 
 // pub fn get_notification() -> Option<i32> {
-pub fn get_notification() -> Option<Event> {
-    println!("Rust: get_notification()");
-    m_get_publish(0)
+// pub fn get_notification(connid: String) -> Option<Event> {
+pub fn get_notification(connid: String) -> Option<i32> {
+    println!("get_notification");
+    // m_get_publish(0)
+    pop_queue(connid)
+
+}
+
+pub fn status(){
+    println!("status");
+    print_queue_status();
 }

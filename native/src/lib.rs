@@ -18,6 +18,9 @@ extern crate num_cpus;
 extern crate tesla;
 extern crate trex;
 
+extern crate uuid;
+use uuid::Uuid;
+
 use chrono::{Duration, UTC};
 use std::sync::Arc;
 use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Rule, Tuple, TupleDeclaration,
@@ -34,12 +37,22 @@ use tesla::predicates::{ConstrainedTuple, EventSelection, ParameterDeclaration, 
 // use std::{mem, thread};
 
 pub mod global_vector;
+pub mod conn_queues;
 pub mod operations;
 
-use operations::{initialize,declareEvent, defineRule, subscribe, unsubscribe, publish,get_notification};
+use operations::{initialize,declareEvent, defineRule, subscribe, unsubscribe, publish,get_notification,status};
 
 ///////////// WRAPPERS ////////////////////////////////////////////////////////
+fn w_getConnection(call: Call) -> JsResult<JsString> {
+    println!("w_getConnection");
+    let scope = call.scope;
+    let uuid = Uuid::new_v4();
+    // Ok(JsString::new(scope, "5156165516548").unwrap())
+    Ok(JsString::new(scope, &(uuid.to_hyphenated_string())[..]).unwrap())
+}
+
 fn w_initialize(call: Call) -> JsResult<JsString> {
+    println!("w_initialize");
     let scope = call.scope;
 
     initialize();
@@ -48,6 +61,7 @@ fn w_initialize(call: Call) -> JsResult<JsString> {
 }
 
 fn w_declareEvent(call: Call) -> JsResult<JsString> {
+    println!("w_declareEvent");
     let scope = call.scope;
 
     let attr1 = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
@@ -72,6 +86,7 @@ fn w_declareEvent(call: Call) -> JsResult<JsString> {
 }
 
 fn w_defineRule(call: Call) -> JsResult<JsString> {
+    println!("w_defineRule");
     let scope = call.scope;
 
     let rule_predicate = vec![
@@ -154,14 +169,25 @@ fn w_defineRule(call: Call) -> JsResult<JsString> {
 }
 
 fn w_subscribe(call: Call) -> JsResult<JsString> {
+    println!("w_subscribe");
     let scope = call.scope;
 
-    let subscriber_id = subscribe();
+    let connID = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
+    // println!("{}",connID);
+    // let subscriber_id = subscribe();
+    subscribe(connID);
 
-    Ok(JsString::new(scope, "Ok").unwrap())
+    Ok(JsString::new(scope, "Okabc").unwrap())
 }
 
+fn w_status(call: Call) -> JsResult<JsString> {
+    println!("w_status");
+    let scope = call.scope;
+    status();
+    Ok(JsString::new(scope, "Ok").unwrap())
+}
 fn w_unsubscribe(call: Call) -> JsResult<JsString> {
+    println!("w_unsubscribe");
     let scope = call.scope;
 
     let subscriber_id:usize = 1;
@@ -171,11 +197,13 @@ fn w_unsubscribe(call: Call) -> JsResult<JsString> {
 }
 
 fn w_publish(call: Call) -> JsResult<JsString> {
+    println!("w_publish");
     let scope = call.scope;
 
-    let attr1 = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
+    let connID = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
+    let value = try!(try!(call.arguments.require(scope, 1)).check::<JsInteger>()).value();
 
-    let type_id = attr1 as usize;
+    let type_id = value as usize;
     let data_event = vec![Value::Str("area_1".to_owned())];
     publish(type_id, data_event);
 
@@ -183,11 +211,14 @@ fn w_publish(call: Call) -> JsResult<JsString> {
 }
 
 fn w_get_notification(call: Call) -> JsResult<JsString> {
+    println!("w_get_notification");
     let scope = call.scope;
 
-    let type_id = 0;
-    let data_event = vec![Value::Str("area_1".to_owned())];
-    let result = get_notification();
+    let connID = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
+
+    // let type_id = 0;
+    // let data_event = vec![Value::Str("area_1".to_owned())];
+    let result = get_notification(connID);
 
     match result {
         // The division was valid
@@ -202,10 +233,13 @@ fn w_get_notification(call: Call) -> JsResult<JsString> {
 
 register_module!(m, {
     m.export("initialize", w_initialize);
+    m.export("getConnection", w_getConnection);
     m.export("declareEvent", w_declareEvent);
     m.export("defineRule", w_defineRule);
     m.export("subscribe", w_subscribe);
     m.export("unsubscribe", w_unsubscribe);
-    m.export("get_notification", w_get_notification);
+    m.export("status", w_status);
+    // m.export("get_notification", w_get_notification);
+    m.export("getNotification", w_get_notification);
     m.export("publish", w_publish)
 });

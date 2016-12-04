@@ -18,3 +18,4 @@ num_cpus = "^1"
 regex = "^0.1"
 tesla = { path = "../tesla/" }
 trex = { path = "../trex/" }
+uuid = "~0.1.1"
