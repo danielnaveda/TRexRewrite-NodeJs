@@ -7,7 +7,9 @@ use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Rule, Tuple, Tup
 
 #[derive(Clone)]
 struct SingletonQueues {
-    inner: Arc<Mutex<HashMap<String, Vec<i32>>>>
+    // inner: Arc<Mutex<HashMap<String, Vec<i32>>>>
+    // inner: Arc<Mutex<HashMap<String, Vec<Event>>>>
+    inner: Arc<Mutex<HashMap<String, Vec<Arc<Event>>>>>
 }
 
 fn singletonqueues() -> SingletonQueues {
@@ -25,14 +27,19 @@ fn singletonqueues() -> SingletonQueues {
     }
 }
 
-pub fn insert_queue(connid: String, value: i32){
+// pub fn insert_queue(connid: String, value: i32){
+// pub fn insert_queue(connid: String, event: Event){
+pub fn insert_queue(connid: String, event: Arc<Event>){
     let s = singletonqueues();
     let mut conn_queues = s.inner.lock().unwrap();
     let queue = conn_queues.entry(String::from(connid)).or_insert(vec![]);
-    (*queue).insert(0,value);
+    // (*queue).insert(0,value);
+    (*queue).insert(0,event);
 }
 // pub fn pop_queue(connid: String){
-pub fn pop_queue(connid: String) -> Option<i32> {
+// pub fn pop_queue(connid: String) -> Option<i32> {
+// pub fn pop_queue(connid: String) -> Option<Event> {
+pub fn pop_queue(connid: String) -> Option<Arc<Event>> {
     let s = singletonqueues();
     let mut conn_queues = s.inner.lock().unwrap();
     let queue = conn_queues.entry(String::from(connid)).or_insert(vec![]);

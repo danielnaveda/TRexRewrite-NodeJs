@@ -81,7 +81,14 @@ impl Listener for QueueListener {
     fn receive(&mut self, event: &Arc<Event>) {
         println!("Queue Listener: {:?}", event);
         println!("Queue Listener self.connID.to_owned() => {:?}", self.connID.to_owned());
-        insert_queue(self.connID.to_owned(), ( 15 as i32));
+        // insert_queue(self.connID.to_owned(), ( 15 as i32));
+
+        // match Arc::try_unwrap(*event) {
+        //     Ok(v) => insert_queue(self.connID.to_owned(), v),
+        //     Err(e) => println!("Error"),
+        //     // _ => println!("Error"),
+        // }
+        insert_queue(self.connID.to_owned(), (*event).clone());
     }
 }
 
@@ -109,9 +116,140 @@ impl Listener for queue_struct {
 
 ///////////////
 pub fn initialize(){
-    println!("initialize");
-    let engine = singleton();
-    m_subscribe();
+    // println!("initialize");
+    // let engine = singleton();
+    // m_subscribe();
+    let s = singleton();
+    let mut engine = s.inner.lock().unwrap();
+
+    // `declare smoke(area: string) with id 0`
+    engine.declare(TupleDeclaration {
+        ty: TupleType::Event,
+        id: 0,
+        name: "smoke".to_owned(),
+        attributes: vec![
+                AttributeDeclaration {
+                    name: "area".to_owned(),
+                    ty: BasicType::Str,
+                },
+            ],
+    });
+
+    engine.declare(TupleDeclaration {
+        ty: TupleType::Event,
+        id: 1,
+        name: "temperature".to_owned(),
+        attributes: vec![
+                AttributeDeclaration {
+                    name: "area".to_owned(),
+                    ty: BasicType::Str,
+                },
+                AttributeDeclaration {
+                    name: "value".to_owned(),
+                    ty: BasicType::Int,
+                },
+            ],
+    });
+
+    engine.declare(TupleDeclaration {
+        ty: TupleType::Event,
+        id: 2,
+        name: "fire".to_owned(),
+        attributes: vec![
+                AttributeDeclaration {
+                    name: "area".to_owned(),
+                    ty: BasicType::Str,
+                },
+                AttributeDeclaration {
+                    name: "temp".to_owned(),
+                    ty: BasicType::Int,
+                },
+            ],
+    });
+
+    // `from smoke[$x = area]() as smk
+    //  and last temperature[$y = value](area == $x, value > 45) as temp within 5min from smk
+    //  emit fire(area = $x, temp = $y)`
+    // engine.define(Rule {
+    //     predicates: vec![
+    //         Predicate {
+    //             ty: PredicateType::Trigger {
+    //                 parameters: vec![
+    //                     ParameterDeclaration {
+    //                         name: "x".to_owned(),
+    //                         expression: Arc::new(Expression::Reference {
+    //                             attribute: 0,
+    //                         }),
+    //                     },
+    //                 ],
+    //             },
+    //             tuple: ConstrainedTuple {
+    //                 ty_id: 0,
+    //                 constraints: vec![],
+    //                 alias: "smk".to_owned(),
+    //             },
+    //         },
+    //         Predicate {
+    //             ty: PredicateType::Event {
+    //                 selection: EventSelection::Last,
+    //                 parameters: vec![
+    //                     ParameterDeclaration {
+    //                         name: "y".to_owned(),
+    //                         expression: Arc::new(Expression::Reference {
+    //                             attribute: 1,
+    //                         }),
+    //                     },
+    //                 ],
+    //                 timing: Timing {
+    //                     upper: 0,
+    //                     bound: TimingBound::Within {
+    //                         window: Duration::minutes(5),
+    //                     },
+    //                 },
+    //             },
+    //             tuple: ConstrainedTuple {
+    //                 ty_id: 1,
+    //                 constraints: vec![
+    //                     Arc::new(Expression::BinaryOperation {
+    //                         operator: BinaryOperator::Equal,
+    //                         left: Box::new(Expression::Reference {
+    //                             attribute: 0,
+    //                         }),
+    //                         right: Box::new(Expression::Parameter {
+    //                             predicate: 0,
+    //                             parameter: 0,
+    //                         }),
+    //                     }),
+    //                     Arc::new(Expression::BinaryOperation {
+    //                         operator: BinaryOperator::GreaterThan,
+    //                         left: Box::new(Expression::Reference {
+    //                             attribute: 1,
+    //                         }),
+    //                         right: Box::new(Expression::Immediate {
+    //                             value: Value::Int(45),
+    //                         }),
+    //                     }),
+    //                 ],
+    //                 alias: "temp".to_owned(),
+    //             },
+    //         },
+    //     ],
+    //     filters: vec![],
+    //     event_template: EventTemplate {
+    //         ty_id: 2,
+    //         attributes: vec![
+    //             Expression::Parameter {
+    //                 predicate: 0,
+    //                 parameter: 0,
+    //             },
+    //             Expression::Parameter {
+    //                 predicate: 1,
+    //                 parameter: 0,
+    //             },
+    //         ],
+    //     },
+    //     consuming: vec![],
+    // });
 }
 
 pub fn declareEvent(event_id: usize, event_name: &str, event_vector: Vec<AttributeDeclaration>){
@@ -272,7 +410,8 @@ pub fn publish(type_id: usize, data_event : Vec<Value>){
 
 // pub fn get_notification() -> Option<i32> {
 // pub fn get_notification(connid: String) -> Option<Event> {
-pub fn get_notification(connid: String) -> Option<i32> {
+// pub fn get_notification(connid: String) -> Option<i32> {
+pub fn get_notification(connid: String) -> Option<Arc<Event>> {
     println!("get_notification");
     // m_get_publish(0)
     pop_queue(connid)
