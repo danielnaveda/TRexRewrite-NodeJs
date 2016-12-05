@@ -44,15 +44,16 @@ use operations::{initialize,declareEvent, defineRule, subscribe, unsubscribe, pu
 
 ///////////// WRAPPERS ////////////////////////////////////////////////////////
 fn w_getConnection(call: Call) -> JsResult<JsString> {
-    println!("w_getConnection");
+    // println!("w_getConnection");
     let scope = call.scope;
     let uuid = Uuid::new_v4();
+    println!("Rust::getConnection: {}", uuid);
     // Ok(JsString::new(scope, "5156165516548").unwrap())
     Ok(JsString::new(scope, &(uuid.to_hyphenated_string())[..]).unwrap())
 }
 
 fn w_initialize(call: Call) -> JsResult<JsString> {
-    println!("w_initialize");
+    // println!("w_initialize");
     let scope = call.scope;
 
     initialize();
@@ -61,7 +62,7 @@ fn w_initialize(call: Call) -> JsResult<JsString> {
 }
 
 fn w_declareEvent(call: Call) -> JsResult<JsString> {
-    println!("w_declareEvent");
+    // println!("w_declareEvent");
     let scope = call.scope;
 
     let attr1 = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
@@ -86,7 +87,7 @@ fn w_declareEvent(call: Call) -> JsResult<JsString> {
 }
 
 fn w_defineRule(call: Call) -> JsResult<JsString> {
-    println!("w_defineRule");
+    // println!("w_defineRule");
     let scope = call.scope;
 
     let rule_predicate = vec![
@@ -169,7 +170,7 @@ fn w_defineRule(call: Call) -> JsResult<JsString> {
 }
 
 fn w_subscribe(call: Call) -> JsResult<JsString> {
-    println!("w_subscribe");
+    // println!("w_subscribe");
     let scope = call.scope;
 
     let connID = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
@@ -177,17 +178,17 @@ fn w_subscribe(call: Call) -> JsResult<JsString> {
     // let subscriber_id = subscribe();
     subscribe(connID);
 
-    Ok(JsString::new(scope, "Okabc").unwrap())
+    Ok(JsString::new(scope, "Ok").unwrap())
 }
 
 fn w_status(call: Call) -> JsResult<JsString> {
-    println!("w_status");
+    // println!("w_status");
     let scope = call.scope;
     status();
     Ok(JsString::new(scope, "Ok").unwrap())
 }
 fn w_unsubscribe(call: Call) -> JsResult<JsString> {
-    println!("w_unsubscribe");
+    // println!("w_unsubscribe");
     let scope = call.scope;
 
     let subscriber_id:usize = 1;
@@ -197,7 +198,7 @@ fn w_unsubscribe(call: Call) -> JsResult<JsString> {
 }
 
 fn w_publish(call: Call) -> JsResult<JsString> {
-    println!("w_publish");
+    // println!("w_publish");
     let scope = call.scope;
 
     let connID = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
@@ -211,7 +212,7 @@ fn w_publish(call: Call) -> JsResult<JsString> {
 }
 
 fn w_get_notification(call: Call) -> JsResult<JsString> {
-    println!("w_get_notification");
+    // println!("w_get_notification");
     let scope = call.scope;
 
     let connID = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();

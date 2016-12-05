@@ -116,7 +116,7 @@ impl Listener for queue_struct {
 
 ///////////////
 pub fn initialize(){
-    // println!("initialize");
+    println!("Rust::initialize()");
     // let engine = singleton();
     // m_subscribe();
     let s = singleton();
@@ -253,7 +253,7 @@ pub fn initialize(){
 }
 
 pub fn declareEvent(event_id: usize, event_name: &str, event_vector: Vec<AttributeDeclaration>){
-    println!("declareEvent");
+    println!("Rust::declareEvent(...)");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
     engine.declare(TupleDeclaration {
@@ -265,7 +265,7 @@ pub fn declareEvent(event_id: usize, event_name: &str, event_vector: Vec<Attribu
 }
 
 pub fn defineRule(rule_predicate: Vec<Predicate>, r_e_template: EventTemplate){
-    println!("defineRule");
+    println!("Rust::defineRule(...)");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
     engine.define(Rule {
@@ -362,7 +362,7 @@ pub fn defineRule(rule_predicate: Vec<Predicate>, r_e_template: EventTemplate){
 //     engine.subscribe(Box::new(DebugListener2))
 // }
 pub fn subscribe(connID: String) -> usize {
-    println!("subscribe");
+    println!("Rust::subscribe(...)");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
 
@@ -376,14 +376,14 @@ pub fn subscribe(connID: String) -> usize {
 }
 
 pub fn unsubscribe(id: &usize){
-    println!("unsubscribe");
+    println!("Rust::unsubscribe(...)");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
     engine.unsubscribe(id);
 }
 
 pub fn publish(type_id: usize, data_event : Vec<Value>){
-    println!("publish");
+    println!("Rust::publish(...)");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
     engine.publish(&Arc::new(Event {
@@ -412,13 +412,13 @@ pub fn publish(type_id: usize, data_event : Vec<Value>){
 // pub fn get_notification(connid: String) -> Option<Event> {
 // pub fn get_notification(connid: String) -> Option<i32> {
 pub fn get_notification(connid: String) -> Option<Arc<Event>> {
-    println!("get_notification");
+    println!("Rust::get_notification(...)");
     // m_get_publish(0)
     pop_queue(connid)
 
 }
 
 pub fn status(){
-    println!("status");
+    println!("Rust::status()");
     print_queue_status();
 }
