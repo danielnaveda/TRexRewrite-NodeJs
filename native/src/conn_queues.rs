@@ -49,7 +49,19 @@ pub fn pop_queue(connid: String) -> Option<Arc<Event>> {
 
 pub fn print_queue_status(){
     let s = singletonqueues();
-    let mut conn_queues = s.inner.lock().unwrap();
+    let conn_queues = s.inner.lock().unwrap();
     println!("Queue Status:");
-    println!("conn_queues.len(): {}", conn_queues.len());
+    println!("Number of queues/conn_ids: {}", conn_queues.len());
+
+    println!("Connection IDs in use:");
+    // iterate over everything.
+    for conn_id in conn_queues.keys() {
+        // println!("{}: \"{}\"", conn_id, queue);
+        println!("  - {}" , conn_id);
+
+        // println!("{:?}", conn_queues[conn_id]);
+        for i in 0..conn_queues[conn_id].len() {
+            println!("     * {:?}", conn_queues[conn_id][i]);
+        }
+    }
 }

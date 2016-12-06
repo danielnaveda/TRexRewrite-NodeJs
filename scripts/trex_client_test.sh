@@ -1,19 +1,20 @@
 #!/bin/bash
-
 printf "================= Testing TRex ================="; echo
 
 # for (( c=1; c<=100; c++ ))
 # do
-./getconnection.sh
+# ./getconnection.sh
 
-./subscribe.sh 123
+source getconnection.sh
 
-./getnotification.sh
+./subscribe.sh $CONN_ID
 
-./publish.sh 333
+./getnotification.sh $CONN_ID
 
-./getnotification.sh
+./publish.sh $CONN_ID
 
-./getnotification.sh
+./getnotification.sh $CONN_ID
+
+./getnotification.sh $CONN_ID
 
 # done
