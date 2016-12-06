@@ -1,29 +1,19 @@
 #!/bin/bash
 
-#
-echo "--------------- Testing TRex ---------------"; echo
+printf "================= Testing TRex ================="; echo
 
+# for (( c=1; c<=100; c++ ))
+# do
+./getconnection.sh
 
-#Get Connection ID
-echo "Get Connection ID:"
-curl http://127.0.0.1:8888/connections; echo; echo
+./subscribe.sh 123
 
-#Subscribe
-echo "Subscribe:"
-curl -H "Content-Type: application/json" -X POST http://127.0.0.1:8888/subscriptions/123456; echo; echo
+./getnotification.sh
 
-#Get Notification
-echo "Get Notification:"
-curl http://127.0.0.1:8888/events/123456; echo; echo
+./publish.sh 333
 
-#Publish
-echo "Publish:"
-curl -H "Content-Type: application/json" -X POST -d '{"value": 18}' http://127.0.0.1:8888/events/123456; echo; echo
+./getnotification.sh
 
-#Get Notification
-echo "Get Notification:"
-curl http://127.0.0.1:8888/events/123456; echo; echo
+./getnotification.sh
 
-#Get Notification
-echo "Get Notification:"
-curl http://127.0.0.1:8888/events/123456; echo; echo
+# done
