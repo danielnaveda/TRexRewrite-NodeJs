@@ -415,7 +415,6 @@ pub fn get_notification(connid: String) -> Option<Arc<Event>> {
     println!("Rust::get_notification(...)");
     // m_get_publish(0)
     pop_queue(connid)
-
 }
 
 pub fn status(){

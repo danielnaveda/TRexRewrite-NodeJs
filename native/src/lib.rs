@@ -41,7 +41,7 @@ pub mod conn_queues;
 pub mod operations;
 
 use operations::{initialize,declareEvent, defineRule, subscribe, unsubscribe, publish,get_notification,status};
-
+use conn_queues::write_status;
 ///////////// WRAPPERS ////////////////////////////////////////////////////////
 fn w_getConnection(call: Call) -> JsResult<JsString> {
     // println!("w_getConnection");
@@ -57,7 +57,7 @@ fn w_initialize(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
 
     initialize();
-
+    write_status();
     Ok(JsString::new(scope, "Ok").unwrap())
 }
 
@@ -82,7 +82,7 @@ fn w_declareEvent(call: Call) -> JsResult<JsString> {
                             ];
     declareEvent(event_id, event_name, event_vector);
 
-
+    write_status();
     Ok(JsString::new(scope, "Ok").unwrap())
 }
 
@@ -166,6 +166,7 @@ fn w_defineRule(call: Call) -> JsResult<JsString> {
         ],};
     defineRule(rule_predicate, r_e_template);
 
+    write_status();
     Ok(JsString::new(scope, "Ok").unwrap())
 }
 
@@ -178,6 +179,7 @@ fn w_subscribe(call: Call) -> JsResult<JsString> {
     // let subscriber_id = subscribe();
     subscribe(connID);
 
+    write_status();
     Ok(JsString::new(scope, "Ok").unwrap())
 }
 
@@ -185,6 +187,7 @@ fn w_status(call: Call) -> JsResult<JsString> {
     // println!("w_status");
     let scope = call.scope;
     status();
+    write_status();
     Ok(JsString::new(scope, "Ok").unwrap())
 }
 fn w_unsubscribe(call: Call) -> JsResult<JsString> {
@@ -194,6 +197,7 @@ fn w_unsubscribe(call: Call) -> JsResult<JsString> {
     let subscriber_id:usize = 1;
     unsubscribe(&subscriber_id);
 
+    write_status();
     Ok(JsString::new(scope, "Ok").unwrap())
 }
 
@@ -208,6 +212,7 @@ fn w_publish(call: Call) -> JsResult<JsString> {
     let data_event = vec![Value::Str("area_1".to_owned())];
     publish(type_id, data_event);
 
+    write_status();
     Ok(JsString::new(scope, "Ok").unwrap())
 }
 
@@ -221,6 +226,7 @@ fn w_get_notification(call: Call) -> JsResult<JsString> {
     // let data_event = vec![Value::Str("area_1".to_owned())];
     let result = get_notification(connID);
 
+    write_status();
     match result {
         // The division was valid
         Some(x) => Ok(JsString::new(scope, &format!("{:?}", x)[..]  ).unwrap()),
