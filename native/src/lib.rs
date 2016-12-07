@@ -174,10 +174,25 @@ fn w_subscribe(call: Call) -> JsResult<JsString> {
     // println!("w_subscribe");
     let scope = call.scope;
 
-    let connID = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
+    // let connID = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
     // println!("{}",connID);
     // let subscriber_id = subscribe();
-    subscribe(connID);
+    // subscribe(connID);
+    let subs_return = subscribe() as i32;
+
+    write_status();
+    // Ok(JsString::new(scope, "Ok").unwrap())
+    Ok(JsString::new(scope, &format!("{}",subs_return)[..]).unwrap())
+}
+
+fn w_unsubscribe(call: Call) -> JsResult<JsString> {
+    // println!("w_unsubscribe");
+    let scope = call.scope;
+    // let connID = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
+    let connID = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
+    // let subscriber_id:usize = 1;
+    // unsubscribe(&subscriber_id);
+    unsubscribe((connID as usize));
 
     write_status();
     Ok(JsString::new(scope, "Ok").unwrap())
@@ -190,26 +205,39 @@ fn w_status(call: Call) -> JsResult<JsString> {
     write_status();
     Ok(JsString::new(scope, "Ok").unwrap())
 }
-fn w_unsubscribe(call: Call) -> JsResult<JsString> {
-    // println!("w_unsubscribe");
-    let scope = call.scope;
-
-    let subscriber_id:usize = 1;
-    unsubscribe(&subscriber_id);
-
-    write_status();
-    Ok(JsString::new(scope, "Ok").unwrap())
-}
 
 fn w_publish(call: Call) -> JsResult<JsString> {
     // println!("w_publish");
     let scope = call.scope;
 
+    // let connID = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
+    // let value = try!(try!(call.arguments.require(scope, 1)).check::<JsInteger>()).value();
     let connID = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
-    let value = try!(try!(call.arguments.require(scope, 1)).check::<JsInteger>()).value();
+    let type_input = try!(try!(call.arguments.require(scope, 1)).check::<JsInteger>()).value();
+    let area = try!(try!(call.arguments.require(scope, 2)).check::<JsString>()).value();
 
-    let type_id = value as usize;
-    let data_event = vec![Value::Str("area_1".to_owned())];
+    // let type_id = value as usize;
+    let type_id = type_input as usize;
+    // let data_event = vec![Value::Str("area_1".to_owned())];
+    let data_event = vec![Value::Str(area)];
+    publish(type_id, data_event);
+
+    write_status();
+    Ok(JsString::new(scope, "Ok").unwrap())
+}
+
+fn w_unknown_publish(call: Call) -> JsResult<JsString> {
+    // println!("w_publish");
+    let scope = call.scope;
+
+    // let value = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
+    let type_input = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
+    let area = try!(try!(call.arguments.require(scope, 1)).check::<JsString>()).value();
+
+    // let type_id = value as usize;
+    let type_id = type_input as usize;
+    // let data_event = vec![Value::Str("area_1".to_owned())];
+    let data_event = vec![Value::Str(area)];
     publish(type_id, data_event);
 
     write_status();
@@ -217,15 +245,14 @@ fn w_publish(call: Call) -> JsResult<JsString> {
 }
 
 fn w_get_notification(call: Call) -> JsResult<JsString> {
-    // println!("w_get_notification");
     let scope = call.scope;
 
-    let connID = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
+    // let connID = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
+    let connID = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
 
     // let type_id = 0;
     // let data_event = vec![Value::Str("area_1".to_owned())];
-    let result = get_notification(connID);
-
+    let result = get_notification(connID as usize);
     write_status();
     match result {
         // The division was valid
@@ -248,5 +275,6 @@ register_module!(m, {
     m.export("status", w_status);
     // m.export("get_notification", w_get_notification);
     m.export("getNotification", w_get_notification);
-    m.export("publish", w_publish)
+    m.export("publish", w_publish);
+    m.export("unknown_publish", w_unknown_publish)
 });

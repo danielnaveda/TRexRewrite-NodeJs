@@ -9,4 +9,16 @@ printf "${GREEN}--- SUBSCRIBE ---\n"
 printf "${BLUE}Sent: POST /subscriptions/$1\n";
 printf "{}\n";
 printf "${YELLOW}Received:\n"
-curl -H "Content-Type: application/json" -X POST http://127.0.0.1:8888/subscriptions/$1; echo; echo
+# curl -H "Content-Type: application/json" -X POST http://127.0.0.1:8888/subscriptions/$1; echo; echo
+OUTPUT=$(curl --fail --silent --show-error -H "Content-Type: application/json" -X POST http://127.0.0.1:8888/subscriptions/$1)
+CONN_ID=$(echo $OUTPUT | jq -r '.value')
+echo "$OUTPUT"; echo
+
+# 
+# printf "${GREEN}--- GET CONNECTION ---\n"
+# printf "${BLUE}Sent: GET /connections\n";
+# printf "{}\n";
+# printf "${YELLOW}Received:\n"
+# OUTPUT=$(curl --fail --silent --show-error http://127.0.0.1:8888/connections)
+# CONN_ID=$(echo $OUTPUT | jq -r '.value')
+# echo "$OUTPUT"; echo

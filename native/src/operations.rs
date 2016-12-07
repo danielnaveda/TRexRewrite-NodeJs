@@ -31,7 +31,7 @@ use std::sync::{Mutex, Once, ONCE_INIT};
 use std::{mem, thread};
 
 use global_vector::{m_subscribe, m_publish, m_get_publish};
-use conn_queues::{insert_queue, pop_queue, print_queue_status};
+use conn_queues::{insert_queue, pop_queue, print_queue_status,remove_queue};
 
 #[derive(Clone)]
 struct SingletonReader {
@@ -74,13 +74,14 @@ impl Listener for DebugListener2 {
 
 #[derive(Clone, Debug)]
 pub struct QueueListener{
-    connID: String,
+    // connID: String,
+    connID: usize,
 }
 
 impl Listener for QueueListener {
     fn receive(&mut self, event: &Arc<Event>) {
-        println!("Queue Listener: {:?}", event);
-        println!("Queue Listener self.connID.to_owned() => {:?}", self.connID.to_owned());
+        // println!("Queue Listener: {:?}", event);
+        // println!("Queue Listener self.connID.to_owned() => {:?}", self.connID.to_owned());
         // insert_queue(self.connID.to_owned(), ( 15 as i32));
 
         // match Arc::try_unwrap(*event) {
@@ -88,6 +89,7 @@ impl Listener for QueueListener {
         //     Err(e) => println!("Error"),
         //     // _ => println!("Error"),
         // }
+        // insert_queue(self.connID.to_owned(), (*event).clone());
         insert_queue(self.connID.to_owned(), (*event).clone());
     }
 }
@@ -361,7 +363,8 @@ pub fn defineRule(rule_predicate: Vec<Predicate>, r_e_template: EventTemplate){
 //     // engine.subscribe(Box::new(DebugListener))
 //     engine.subscribe(Box::new(DebugListener2))
 // }
-pub fn subscribe(connID: String) -> usize {
+pub fn subscribe() -> usize {
+// pub fn subscribe(connID: String) -> usize {
     println!("Rust::subscribe(...)");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
@@ -369,17 +372,31 @@ pub fn subscribe(connID: String) -> usize {
     // let queueL = Box::new(QueueListener{connID : String::from("asfa")});
 
     // engine.subscribe(Box::new(DebugListener2))
-    engine.subscribe(Box::new(QueueListener{connID : connID}))
+
+
+
+    let conn_id = engine.last_id+(1 as usize);
+
+    pop_queue(conn_id);
+
+    engine.subscribe(Box::new(QueueListener{connID : conn_id}))
     // engine.subscribe(queueL)
 
     //Take connID and create a listener for that
 }
 
-pub fn unsubscribe(id: &usize){
+// pub fn unsubscribe(id: &usize){
+// pub fn unsubscribe(connID: String){
+pub fn unsubscribe(connID: usize){
     println!("Rust::unsubscribe(...)");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
-    engine.unsubscribe(id);
+
+    // engine.unsubscribe(id);
+    engine.unsubscribe(&connID);
+
+    //TODO: Remove queue
+    remove_queue(connID);
 }
 
 pub fn publish(type_id: usize, data_event : Vec<Value>){
@@ -411,7 +428,8 @@ pub fn publish(type_id: usize, data_event : Vec<Value>){
 // pub fn get_notification() -> Option<i32> {
 // pub fn get_notification(connid: String) -> Option<Event> {
 // pub fn get_notification(connid: String) -> Option<i32> {
-pub fn get_notification(connid: String) -> Option<Arc<Event>> {
+// pub fn get_notification(connid: String) -> Option<Arc<Event>> {
+pub fn get_notification(connid: usize) -> Option<Arc<Event>> {
     println!("Rust::get_notification(...)");
     // m_get_publish(0)
     pop_queue(connid)

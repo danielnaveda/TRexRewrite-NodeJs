@@ -16,7 +16,8 @@ use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Rule, Tuple, Tup
 struct SingletonQueues {
     // inner: Arc<Mutex<HashMap<String, Vec<i32>>>>
     // inner: Arc<Mutex<HashMap<String, Vec<Event>>>>
-    inner: Arc<Mutex<HashMap<String, Vec<Arc<Event>>>>>
+    // inner: Arc<Mutex<HashMap<String, Vec<Arc<Event>>>>>
+    inner: Arc<Mutex<HashMap<usize, Vec<Arc<Event>>>>>
 }
 
 fn singletonqueues() -> SingletonQueues {
@@ -36,22 +37,32 @@ fn singletonqueues() -> SingletonQueues {
 
 // pub fn insert_queue(connid: String, value: i32){
 // pub fn insert_queue(connid: String, event: Event){
-pub fn insert_queue(connid: String, event: Arc<Event>){
+// pub fn insert_queue(connid: String, event: Arc<Event>){
+pub fn insert_queue(connid: usize, event: Arc<Event>){
     let s = singletonqueues();
     let mut conn_queues = s.inner.lock().unwrap();
-    let queue = conn_queues.entry(String::from(connid)).or_insert(vec![]);
+    // let queue = conn_queues.entry(String::from(connid)).or_insert(vec![]);
+    let queue = conn_queues.entry(connid).or_insert(vec![]);
     // (*queue).insert(0,value);
     (*queue).insert(0,event);
 }
 // pub fn pop_queue(connid: String){
 // pub fn pop_queue(connid: String) -> Option<i32> {
 // pub fn pop_queue(connid: String) -> Option<Event> {
-pub fn pop_queue(connid: String) -> Option<Arc<Event>> {
+// pub fn pop_queue(connid: String) -> Option<Arc<Event>> {
+pub fn pop_queue(connid: usize) -> Option<Arc<Event>> {
     let s = singletonqueues();
     let mut conn_queues = s.inner.lock().unwrap();
-    let queue = conn_queues.entry(String::from(connid)).or_insert(vec![]);
+    // let queue = conn_queues.entry(String::from(connid)).or_insert(vec![]);
+    let queue = conn_queues.entry(connid).or_insert(vec![]);
     // println!("{:?}",(*queue).pop());
     (*queue).pop()
+}
+
+pub fn remove_queue(connid: usize){
+    let s = singletonqueues();
+    let mut conn_queues = s.inner.lock().unwrap();
+    conn_queues.remove(&connid);
 }
 
 pub fn print_queue_status(){
@@ -86,7 +97,7 @@ pub fn write_status() -> Result<(), io::Error>{
     // let s_buffer: String = format!("Queue Status:");
     // try!(buffer.write_all(s_buffer[..].as_bytes()));
     // println!("Number of queues/conn_ids: {}", conn_queues.len());
-    println!("Number of queues/conn_ids: {}", conn_queues.len());
+    // println!("Number of queues/conn_ids: {}", conn_queues.len());
     try!(buffer.write_all(format!("Number of queues/conn_ids: {}\n", conn_queues.len()).as_bytes()));
     // try!(buffer.write_all(b"some bytes"));
 

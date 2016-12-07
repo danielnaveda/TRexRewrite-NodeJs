@@ -5,9 +5,11 @@ printf "================= Testing TRex ================="; echo
 # do
 # ./getconnection.sh
 
-source getconnection.sh
+# source getconnection.sh
 
-./subscribe.sh $CONN_ID
+# ./subscribe.sh $CONN_ID
+# ./subscribe.sh
+source subscribe.sh
 
 ./getnotification.sh $CONN_ID
 
