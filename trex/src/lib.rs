@@ -87,8 +87,7 @@ pub struct TRex {
     provider: GeneralProvider,
     reverse_index: FnvHashMap<usize, Vec<Arc<Mutex<RuleStacks>>>>,
     listeners: BTreeMap<usize, Box<Listener>>,
-    //TODO: I modified this to be able to keep track of the value, create a function to get this
-    pub last_id: usize,
+    last_id: usize,
     threadpool: ThreadPool,
     channel: (Sender<Vec<Arc<Event>>>, Receiver<Vec<Arc<Event>>>),
 }
@@ -104,6 +103,9 @@ impl TRex {
             threadpool: ThreadPool::new(threads),
             channel: channel(),
         }
+    }
+    pub fn get_last_id(&self) -> usize {
+        self.last_id
     }
 }
 

@@ -19,3 +19,4 @@ regex = "^0.1"
 tesla = { path = "../tesla/" }
 trex = { path = "../trex/" }
 uuid = "~0.1.1"
+rustc-serialize = "0.3"

@@ -54,8 +54,28 @@ pub fn pop_queue(connid: usize) -> Option<Arc<Event>> {
     let s = singletonqueues();
     let mut conn_queues = s.inner.lock().unwrap();
     // let queue = conn_queues.entry(String::from(connid)).or_insert(vec![]);
+
+    // let queue = conn_queues.entry(connid).or_insert(vec![]);
+    // (*queue).pop()
+
+    if conn_queues.contains_key(&connid) == true {
+        let queue = conn_queues.entry(connid).or_insert(vec![]);
+        (*queue).pop()
+    } else {
+        None
+    }
+
+    // let mut exists = 0;
+    // match conn_queues.get_mut(&connid) {
+    //     Some(event) => {let queue = conn_queues.entry(connid).or_insert(vec![]);(*queue).pop()},
+    //     None => {None}
+    // }
+}
+
+pub fn init_queue(connid: usize) -> Option<Arc<Event>> {
+    let s = singletonqueues();
+    let mut conn_queues = s.inner.lock().unwrap();
     let queue = conn_queues.entry(connid).or_insert(vec![]);
-    // println!("{:?}",(*queue).pop());
     (*queue).pop()
 }
 

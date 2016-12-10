@@ -1,8 +1,8 @@
 #!/bin/bash
 printf "================= Testing TRex ================="; echo
 
-# for (( c=1; c<=100; c++ ))
-# do
+for (( c=1; c<=1; c++ ))
+do
 # ./getconnection.sh
 
 # source getconnection.sh
@@ -11,12 +11,16 @@ printf "================= Testing TRex ================="; echo
 # ./subscribe.sh
 source subscribe.sh
 
-./getnotification.sh $CONN_ID
+# ./getnotification.sh $CONN_ID
 
-./publish.sh $CONN_ID
+# ./publish.sh $CONN_ID
+# ./publish.sh
 
-./getnotification.sh $CONN_ID
+# sleep 0.1
 
-./getnotification.sh $CONN_ID
+# ./getnotification.sh $CONN_ID
 
-# done
+# ./getnotification.sh $CONN_ID
+
+./unsubscribe.sh $CONN_ID
+done

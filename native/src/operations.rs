@@ -31,7 +31,7 @@ use std::sync::{Mutex, Once, ONCE_INIT};
 use std::{mem, thread};
 
 use global_vector::{m_subscribe, m_publish, m_get_publish};
-use conn_queues::{insert_queue, pop_queue, print_queue_status,remove_queue};
+use conn_queues::{insert_queue, pop_queue, print_queue_status,remove_queue,init_queue};
 
 #[derive(Clone)]
 struct SingletonReader {
@@ -172,86 +172,86 @@ pub fn initialize(){
     // `from smoke[$x = area]() as smk
     //  and last temperature[$y = value](area == $x, value > 45) as temp within 5min from smk
     //  emit fire(area = $x, temp = $y)`
-    // engine.define(Rule {
-    //     predicates: vec![
-    //         Predicate {
-    //             ty: PredicateType::Trigger {
-    //                 parameters: vec![
-    //                     ParameterDeclaration {
-    //                         name: "x".to_owned(),
-    //                         expression: Arc::new(Expression::Reference {
-    //                             attribute: 0,
-    //                         }),
-    //                     },
-    //                 ],
-    //             },
-    //             tuple: ConstrainedTuple {
-    //                 ty_id: 0,
-    //                 constraints: vec![],
-    //                 alias: "smk".to_owned(),
-    //             },
-    //         },
-    //         Predicate {
-    //             ty: PredicateType::Event {
-    //                 selection: EventSelection::Last,
-    //                 parameters: vec![
-    //                     ParameterDeclaration {
-    //                         name: "y".to_owned(),
-    //                         expression: Arc::new(Expression::Reference {
-    //                             attribute: 1,
-    //                         }),
-    //                     },
-    //                 ],
-    //                 timing: Timing {
-    //                     upper: 0,
-    //                     bound: TimingBound::Within {
-    //                         window: Duration::minutes(5),
-    //                     },
-    //                 },
-    //             },
-    //             tuple: ConstrainedTuple {
-    //                 ty_id: 1,
-    //                 constraints: vec![
-    //                     Arc::new(Expression::BinaryOperation {
-    //                         operator: BinaryOperator::Equal,
-    //                         left: Box::new(Expression::Reference {
-    //                             attribute: 0,
-    //                         }),
-    //                         right: Box::new(Expression::Parameter {
-    //                             predicate: 0,
-    //                             parameter: 0,
-    //                         }),
-    //                     }),
-    //                     Arc::new(Expression::BinaryOperation {
-    //                         operator: BinaryOperator::GreaterThan,
-    //                         left: Box::new(Expression::Reference {
-    //                             attribute: 1,
-    //                         }),
-    //                         right: Box::new(Expression::Immediate {
-    //                             value: Value::Int(45),
-    //                         }),
-    //                     }),
-    //                 ],
-    //                 alias: "temp".to_owned(),
-    //             },
-    //         },
-    //     ],
-    //     filters: vec![],
-    //     event_template: EventTemplate {
-    //         ty_id: 2,
-    //         attributes: vec![
-    //             Expression::Parameter {
-    //                 predicate: 0,
-    //                 parameter: 0,
-    //             },
-    //             Expression::Parameter {
-    //                 predicate: 1,
-    //                 parameter: 0,
-    //             },
-    //         ],
-    //     },
-    //     consuming: vec![],
-    // });
+    engine.define(Rule {
+        predicates: vec![
+            Predicate {
+                ty: PredicateType::Trigger {
+                    parameters: vec![
+                        ParameterDeclaration {
+                            name: "x".to_owned(),
+                            expression: Arc::new(Expression::Reference {
+                                attribute: 0,
+                            }),
+                        },
+                    ],
+                },
+                tuple: ConstrainedTuple {
+                    ty_id: 0,
+                    constraints: vec![],
+                    alias: "smk".to_owned(),
+                },
+            },
+            Predicate {
+                ty: PredicateType::Event {
+                    selection: EventSelection::Last,
+                    parameters: vec![
+                        ParameterDeclaration {
+                            name: "y".to_owned(),
+                            expression: Arc::new(Expression::Reference {
+                                attribute: 1,
+                            }),
+                        },
+                    ],
+                    timing: Timing {
+                        upper: 0,
+                        bound: TimingBound::Within {
+                            window: Duration::minutes(5),
+                        },
+                    },
+                },
+                tuple: ConstrainedTuple {
+                    ty_id: 1,
+                    constraints: vec![
+                        Arc::new(Expression::BinaryOperation {
+                            operator: BinaryOperator::Equal,
+                            left: Box::new(Expression::Reference {
+                                attribute: 0,
+                            }),
+                            right: Box::new(Expression::Parameter {
+                                predicate: 0,
+                                parameter: 0,
+                            }),
+                        }),
+                        Arc::new(Expression::BinaryOperation {
+                            operator: BinaryOperator::GreaterThan,
+                            left: Box::new(Expression::Reference {
+                                attribute: 1,
+                            }),
+                            right: Box::new(Expression::Immediate {
+                                value: Value::Int(45),
+                            }),
+                        }),
+                    ],
+                    alias: "temp".to_owned(),
+                },
+            },
+        ],
+        filters: vec![],
+        event_template: EventTemplate {
+            ty_id: 2,
+            attributes: vec![
+                Expression::Parameter {
+                    predicate: 0,
+                    parameter: 0,
+                },
+                Expression::Parameter {
+                    predicate: 1,
+                    parameter: 0,
+                },
+            ],
+        },
+        consuming: vec![],
+    });
 }
 
 pub fn declareEvent(event_id: usize, event_name: &str, event_vector: Vec<AttributeDeclaration>){
@@ -375,9 +375,11 @@ pub fn subscribe() -> usize {
 
 
 
-    let conn_id = engine.last_id+(1 as usize);
+    // let conn_id = engine.last_id+(1 as usize);
+    let conn_id = engine.get_last_id() + (1 as usize);
 
-    pop_queue(conn_id);
+    // pop_queue(conn_id);
+    init_queue(conn_id);
 
     engine.subscribe(Box::new(QueueListener{connID : conn_id}))
     // engine.subscribe(queueL)
