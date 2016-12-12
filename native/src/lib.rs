@@ -43,7 +43,7 @@ pub mod global_vector;
 pub mod conn_queues;
 pub mod operations;
 
-use operations::{initialize,declareEvent, defineRule, subscribe, unsubscribe, publish,get_notification,status};
+use operations::{init_examples,declareEvent, defineRule, subscribe, unsubscribe, publish,get_notification,status};
 use conn_queues::write_status;
 ///////////// WRAPPERS ////////////////////////////////////////////////////////
 fn w_getConnection(call: Call) -> JsResult<JsString> {
@@ -55,11 +55,11 @@ fn w_getConnection(call: Call) -> JsResult<JsString> {
     Ok(JsString::new(scope, &(uuid.to_hyphenated_string())[..]).unwrap())
 }
 
-fn w_initialize(call: Call) -> JsResult<JsString> {
+fn w_init_examples(call: Call) -> JsResult<JsString> {
     // println!("w_initialize");
     let scope = call.scope;
 
-    initialize();
+    init_examples();
     write_status();
     Ok(JsString::new(scope, "Ok").unwrap())
 }
@@ -245,17 +245,30 @@ fn w_unknown_publish(call: Call) -> JsResult<JsString> {
     // let area_v = try!(object.unwrap().to_string());
     // println!("{}", area_v);
 
-    let str_object = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
+    let str_event = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
 
-    println!("Rust: {}", str_object);
+    println!("Rust string: {}", str_event);
 
 
-    let data = Json::from_str(&str_object[..]).unwrap();
-    println!("Rust data: {}", data);
+    let event = Json::from_str(&str_event[..]).unwrap();
+    println!("Rust json::from_str: {}", event);
 
-    let publish_obj = data.as_object().unwrap();
-    let area = publish_obj.get("area").unwrap();
-    println!("Rust area: {}", area);
+
+    let obj_event = event.as_object().unwrap();
+
+    // obj_event.
+
+    let time = obj_event.get("time").unwrap();
+    println!("Rust time: {}", time);
+
+    let tuple = obj_event.get("tuple").unwrap();
+    println!("Rust tuple: {}", tuple);
+
+    let obj_tuple = tuple.as_object().unwrap();
+    let ty_id = obj_tuple.get("ty_id").unwrap();
+    println!("Rust ty_id: {}", ty_id);
+
+
     write_status();
     Ok(JsString::new(scope, "Ok").unwrap())
 }
@@ -282,7 +295,7 @@ fn w_get_notification(call: Call) -> JsResult<JsString> {
 }
 
 register_module!(m, {
-    m.export("initialize", w_initialize);
+    m.export("init_examples", w_init_examples);
     m.export("getConnection", w_getConnection);
     m.export("declareEvent", w_declareEvent);
     m.export("defineRule", w_defineRule);

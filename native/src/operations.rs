@@ -117,7 +117,7 @@ impl Listener for queue_struct {
 }
 
 ///////////////
-pub fn initialize(){
+pub fn init_examples(){
     println!("Rust::initialize()");
     // let engine = singleton();
     // m_subscribe();
