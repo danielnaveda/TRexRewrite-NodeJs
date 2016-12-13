@@ -455,6 +455,11 @@ pub fn publish(event: Json){
 
 
     println!("Rust::publish(...)");
+
+    println!("Rust::vec_value: {:?}", vec_value);
+    println!("Rust::ty_id_u: {:?}", ty_id_u);
+
+
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
     engine.publish(&Arc::new(Event {
