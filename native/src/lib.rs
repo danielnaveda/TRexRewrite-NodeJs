@@ -223,7 +223,7 @@ fn w_publish(call: Call) -> JsResult<JsString> {
     let type_id = type_input as usize;
     // let data_event = vec![Value::Str("area_1".to_owned())];
     let data_event = vec![Value::Str(area)];
-    publish(type_id, data_event);
+    // publish(type_id, data_event);
 
     write_status();
     Ok(JsString::new(scope, "Ok").unwrap())
@@ -231,46 +231,50 @@ fn w_publish(call: Call) -> JsResult<JsString> {
 
 fn w_unknown_publish(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
-
-    // let type_input = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
-    // let area = try!(try!(call.arguments.require(scope, 1)).check::<JsString>()).value();
-    //
-    // let type_id = type_input as usize;
-    // let data_event = vec![Value::Str(area)];
-    // publish(type_id, data_event);
-
-    // let object = try!(try!(call.arguments.require(scope, 0)).check::<JsObject>()).value();
-    // let object: Handle<JsObject> = try!(try!(call.arguments.require(scope, 0)).check::<JsObject>());
-    // let area_v = try!(object.get("area").unwrap().to_string());
-    // let area_v = try!(object.unwrap().to_string());
-    // println!("{}", area_v);
-
     let str_event = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
 
-    println!("Rust string: {}", str_event);
+    let event = Json::from_str(&str_event[..]).unwrap();//Json
 
-
-    let event = Json::from_str(&str_event[..]).unwrap();
-    println!("Rust json::from_str: {}", event);
-
-
-    let obj_event = event.as_object().unwrap();
-
-    // obj_event.
-
-    let time = obj_event.get("time").unwrap();
-    println!("Rust time: {}", time);
-
-    let tuple = obj_event.get("tuple").unwrap();
-    println!("Rust tuple: {}", tuple);
-
-    let obj_tuple = tuple.as_object().unwrap();
-    let ty_id = obj_tuple.get("ty_id").unwrap();
-    println!("Rust ty_id: {}", ty_id);
-
+    publish(event);
 
     write_status();
+
     Ok(JsString::new(scope, "Ok").unwrap())
+
+
+    // println!("Rust string: {}", str_event);
+    //
+    // let event = Json::from_str(&str_event[..]).unwrap();//Json
+    //
+    // println!("Rust json::from_str: {}", event);
+    //
+    // let obj_event = event.as_object().unwrap();//BTreeMap<String, Json>
+    //
+    // let time = obj_event.get("time").unwrap();//Json
+    // println!("Rust time: {}", time);
+    //
+    // let tuple = obj_event.get("tuple").unwrap();//Json
+    // println!("Rust tuple: {}", tuple);
+    //
+    // let obj_tuple = tuple.as_object().unwrap();//BTreeMap<String, Json>
+    //
+    // for x in obj_tuple.iter(){
+    //     println!("Rust data: {:?}", x);
+    // }
+    //
+    // let obj_tuple3 = tuple.as_object().unwrap();//BTreeMap<String, Json>
+    // let data = obj_tuple3.get("data").unwrap();//Json
+    //
+    // let data2 = data.as_array().unwrap();//Vec<Json>
+    // for x in data2.iter(){
+    //     println!("AAA: {:?}", x);
+    // }
+    //
+    // let data = obj_tuple.get("data").unwrap();//Json
+    // let obj_tuple = tuple.as_object().unwrap();//Vec<Json>
+    //
+    // write_status();
+    // Ok(JsString::new(scope, "Ok").unwrap())
 }
 
 fn w_get_notification(call: Call) -> JsResult<JsString> {

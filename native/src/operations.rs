@@ -2,6 +2,9 @@ use neon::vm::{Call, JsResult, Module};
 use neon::js::JsString;
 use neon::js::JsInteger;
 use tesla::{Listener};
+
+extern crate rustc_serialize;
+use rustc_serialize::json::Json;
 ///////////////////////////////////////////
 
 // #[cfg(test)]
@@ -401,9 +404,72 @@ pub fn unsubscribe(connID: usize){
     remove_queue(connID);
 }
 
-pub fn publish(type_id: usize, data_event : Vec<Value>){
+// pub fn publish(type_id: usize, data_event : Vec<Value>){
+pub fn publish(event: Json){
+
+    let obj_event = event.as_object().unwrap();//BTreeMap<String, Json>
+
+    // let time = obj_event.get("time").unwrap();//Json
+    let tuple = obj_event.get("tuple").unwrap();//Json
+
+    println!("Rust tuple: {}", tuple);
+
+    let obj_tuple = tuple.as_object().unwrap();//BTreeMap<String, Json>
+    println!("1");
+    let ty_id = obj_tuple.get("ty_id").unwrap();//Json
+    println!("2");
+    let data = obj_tuple.get("data").unwrap();//Json
+    println!("3");
+    println!("Rust ty_id: {}", ty_id);
+    let ty_id_u = ty_id.as_string().unwrap().parse::<usize>();// as usize;
+    println!("4");
+    let data_a = data.as_array().unwrap();//Vec<Json>
+    println!("5");
+
+    let mut vec_value: Vec<Value> = Vec::new();
+
+    for data_e in data_a.iter(){//Json
+        // println!("AAA: {:?}", data_e);
+        // vec_value.push(Value)
+        // Value::Str("area_1".to_owned())
+        // Value::Int(52)
+
+        println!("data_e: {:?}", data_e);
+        println!("data_e.is_string: {:?}", data_e.is_string());
+        println!("data_e.is_string: {:?}", data_e.is_number());
+
+        if (data_e.as_string().unwrap().parse::<i32>().is_ok()){
+            vec_value.push(Value::Int(data_e.as_string().unwrap().parse::<i32>().unwrap()));
+        } else { //if (data_e.as_string().unwrap().parse::<usize>().is_ok())
+            vec_value.push(Value::Str(String::from(data_e.as_string().unwrap())));
+        }
+    }
+
+
+
+
+    // vec![
+    //     Value::Str("area_1".to_owned()),
+    //     Value::Int(52),
+    // ]
+
+
     println!("Rust::publish(...)");
     let s = singleton();
+    let mut engine = s.inner.lock().unwrap();
+    engine.publish(&Arc::new(Event {
+        tuple: Tuple {
+            ty_id: ty_id_u.unwrap(),
+            data: vec_value
+            // vec![
+            //     Value::Str("area_1".to_owned()),
+            //     Value::Int(52),
+            // ]
+            ,
+        },
+        time: UTC::now(),
+    }));
+    /*let s = singleton();
     let mut engine = s.inner.lock().unwrap();
     engine.publish(&Arc::new(Event {
         tuple: Tuple {
@@ -416,15 +482,16 @@ pub fn publish(type_id: usize, data_event : Vec<Value>){
             ,
         },
         time: UTC::now(),
-    }));
-    m_publish(Event {
-        tuple: Tuple {
-            ty_id: type_id,
-            data: data_event
-            ,
-        },
-        time: UTC::now(),
-    });
+    }));*/
+
+    // m_publish(Event {
+    //     tuple: Tuple {
+    //         ty_id: type_id,
+    //         data: data_event
+    //         ,
+    //     },
+    //     time: UTC::now(),
+    // });
 }
 
 // pub fn get_notification() -> Option<i32> {
