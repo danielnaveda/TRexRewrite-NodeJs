@@ -25,7 +25,7 @@ pub mod global_vector;
 pub mod conn_queues;
 pub mod operations;
 
-use operations::{init_examples,declare_event, define_rule, subscribe, unsubscribe, publish,get_notification,status};
+use operations::{init_examples,declare_event, define_rule, subscribe, unsubscribe, publish, unknown_publish, get_notification, status};
 use conn_queues::write_status;
 
 fn w_get_connection(call: Call) -> JsResult<JsString> {
@@ -176,11 +176,14 @@ fn w_status(call: Call) -> JsResult<JsString> {
 
 fn w_publish(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
-    let str_event = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
 
+    let js_conn_id = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
+    let str_event = try!(try!(call.arguments.require(scope, 1)).check::<JsString>()).value();
+
+    let conn_id = js_conn_id as usize;
     let event = Json::from_str(&str_event[..]).unwrap();//Json
 
-    publish(event);
+    publish(conn_id, event);
 
     write_status();
 
@@ -193,7 +196,7 @@ fn w_unknown_publish(call: Call) -> JsResult<JsString> {
 
     let event = Json::from_str(&str_event[..]).unwrap();//Json
 
-    publish(event);
+    unknown_publish(event);
 
     write_status();
 

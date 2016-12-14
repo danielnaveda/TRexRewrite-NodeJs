@@ -235,7 +235,13 @@ pub fn unsubscribe(conn_id: usize){
     remove_queue(conn_id);
 }
 
-pub fn publish(event: Json){
+pub fn publish(conn_id: usize ,event: Json){
+    // TODO: write algorithm for publish (similar to unknown_publish() but taking conn_id into account)
+    unknown_publish(event);
+}
+
+pub fn unknown_publish(event: Json){
+    // TODO: replace this with a function that converts Json event to Event struct
     let obj_event = event.as_object().unwrap();//BTreeMap<String, Json>
     let tuple = obj_event.get("tuple").unwrap();//Json
     let obj_tuple = tuple.as_object().unwrap();//BTreeMap<String, Json>
