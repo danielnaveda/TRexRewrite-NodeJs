@@ -21,7 +21,6 @@ use tesla::{AttributeDeclaration, EventTemplate};
 use tesla::expressions::{BasicType, BinaryOperator, Expression, Value};
 use tesla::predicates::{ConstrainedTuple, EventSelection, ParameterDeclaration, Predicate,PredicateType, Timing, TimingBound};
 
-pub mod global_vector;
 pub mod conn_queues;
 pub mod operations;
 
@@ -40,7 +39,8 @@ fn w_init_examples(call: Call) -> JsResult<JsString> {
 
     init_examples();
     write_status();
-    Ok(JsString::new(scope, "Ok").unwrap())
+    // Ok(JsString::new(scope, "Ok").unwrap())
+    Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
 }
 
 fn w_declare_event(call: Call) -> JsResult<JsString> {
@@ -58,14 +58,13 @@ fn w_declare_event(call: Call) -> JsResult<JsString> {
                                 },
                             ];
     declare_event(event_id, event_name, event_vector);
-
     write_status();
-    Ok(JsString::new(scope, "Ok").unwrap())
+    // Ok(JsString::new(scope, "Ok").unwrap())
+    Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
 }
 
 fn w_define_rule(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
-
     let rule_predicate = vec![
         Predicate {
             ty: PredicateType::Trigger {
@@ -141,37 +140,36 @@ fn w_define_rule(call: Call) -> JsResult<JsString> {
             },
         ],};
     define_rule(rule_predicate, r_e_template);
-
     write_status();
-    Ok(JsString::new(scope, "Ok").unwrap())
+    // Ok(JsString::new(scope, "Ok").unwrap())
+    Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
 }
 
 fn w_subscribe(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
-
     let subs_return = subscribe() as i32;
 
     write_status();
-
-    Ok(JsString::new(scope, &format!("{}",subs_return)[..]).unwrap())
+    Ok(JsString::new(scope, &format!("{{\"result\" : \"ok\", \"value\" : {}}}",subs_return)[..]).unwrap())
 }
 
 fn w_unsubscribe(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
-
     let conn_id = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
 
     unsubscribe((conn_id as usize));
-
     write_status();
-    Ok(JsString::new(scope, "Ok").unwrap())
+    // Ok(JsString::new(scope, "Ok").unwrap())
+    Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
 }
 
 fn w_status(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
+
     status();
     write_status();
-    Ok(JsString::new(scope, "Ok").unwrap())
+    // Ok(JsString::new(scope, "Ok").unwrap())
+    Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
 }
 
 fn w_publish(call: Call) -> JsResult<JsString> {
@@ -184,10 +182,9 @@ fn w_publish(call: Call) -> JsResult<JsString> {
     let event = Json::from_str(&str_event[..]).unwrap();//Json
 
     publish(conn_id, event);
-
     write_status();
-
-    Ok(JsString::new(scope, "Ok").unwrap())
+    // Ok(JsString::new(scope, "Ok").unwrap())
+    Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
 }
 
 fn w_unknown_publish(call: Call) -> JsResult<JsString> {
@@ -197,22 +194,20 @@ fn w_unknown_publish(call: Call) -> JsResult<JsString> {
     let event = Json::from_str(&str_event[..]).unwrap();//Json
 
     unknown_publish(event);
-
     write_status();
-
-    Ok(JsString::new(scope, "Ok").unwrap())
+    Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
 }
 
 fn w_get_notification(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
-
     let conn_id = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
-
     let result = get_notification(conn_id as usize);
+
     write_status();
     match result {
         Some(x) => Ok(JsString::new(scope, &format!("{:?}", x)[..]  ).unwrap()),
-        _    => Ok(JsString::new(scope, "Nothing to Return").unwrap()),
+        // _    => Ok(JsString::new(scope, "Nothing to Return").unwrap()),
+        _    => Ok(JsString::new(scope, "{\"result\" : \"Nothing to return\"}").unwrap()),
     }
 }
 
