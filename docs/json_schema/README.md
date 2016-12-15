@@ -21,8 +21,18 @@ This will be later formalized through the JSON schema
 ### Publish
 ```json
 {
-  "event" : "Event"
+  "event" : <Event>
 }
+```
+
+### Declare Event
+```json
+TODO
+```
+
+### Declare Rule
+```json
+TODO
 ```
 
 ## Server->Client

@@ -188,28 +188,40 @@ pub fn init_examples(){
     });
 }
 
-pub fn declare_event(event_id: usize, event_name: &str, event_vector: Vec<AttributeDeclaration>){
+// pub fn declare_event(event_id: usize, event_name: &str, event_vector: Vec<AttributeDeclaration>){
+pub fn declare_event(event: Json){
     println!("Rust::declareEvent(...)");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
-    engine.declare(TupleDeclaration {
-        ty: TupleType::Event,
-        id: event_id,
-        name: event_name.to_owned(),
-        attributes: event_vector,
-    });
+
+    // TODO: create the conversion function
+    // let event_struct = json_to_event(event);
+    // engine.define(event_struct);
+
+    // engine.declare(TupleDeclaration {
+    //     ty: TupleType::Event,
+    //     id: event_id,
+    //     name: event_name.to_owned(),
+    //     attributes: event_vector,
+    // });
 }
 
-pub fn define_rule(rule_predicate: Vec<Predicate>, r_e_template: EventTemplate){
+// pub fn define_rule(rule_predicate: Vec<Predicate>, r_e_template: EventTemplate){
+pub fn define_rule(rule: Json){
     println!("Rust::defineRule(...)");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
-    engine.define(Rule {
-        predicates: rule_predicate,
-        filters: vec![],
-        event_template: r_e_template,
-        consuming: vec![],
-    });
+
+    // TODO: create the conversion function
+    // let rule_struct = json_to_rule(rule);
+    // engine.define(rule_struct);
+
+    // engine.define(Rule {
+    //     predicates: rule_predicate,
+    //     filters: vec![],
+    //     event_template: r_e_template,
+    //     consuming: vec![],
+    // });
 }
 
 // pub fn subscribe(connID: String) -> usize {
