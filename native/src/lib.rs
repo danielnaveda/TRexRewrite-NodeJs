@@ -39,111 +39,131 @@ fn w_init_examples(call: Call) -> JsResult<JsString> {
 
     init_examples();
     write_status();
-    // Ok(JsString::new(scope, "Ok").unwrap())
+
     Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
 }
 
+// fn w_declare_event(call: Call) -> JsResult<JsString> {
+//     let scope = call.scope;
+//
+//     let attr1 = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
+//     let attr2 = try!(try!(call.arguments.require(scope, 1)).check::<JsString>()).value();
+//
+//     let event_id = attr1 as usize;
+//     let event_name =  &attr2[..];
+//     let event_vector = vec![
+//                                 AttributeDeclaration {
+//                                     name: "area".to_owned(),
+//                                     ty: BasicType::Str,
+//                                 },
+//                             ];
+//     declare_event(event_id, event_name, event_vector);
+//     write_status();
+//     // Ok(JsString::new(scope, "Ok").unwrap())
+//     Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
+// }
 fn w_declare_event(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
+    let str_event = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
 
-    let attr1 = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
-    let attr2 = try!(try!(call.arguments.require(scope, 1)).check::<JsString>()).value();
+    let event_dec = Json::from_str(&str_event[..]).unwrap();//Json
 
-    let event_id = attr1 as usize;
-    let event_name =  &attr2[..];
-    let event_vector = vec![
-                                AttributeDeclaration {
-                                    name: "area".to_owned(),
-                                    ty: BasicType::Str,
-                                },
-                            ];
-    declare_event(event_id, event_name, event_vector);
+    declare_event(event_dec);
     write_status();
-    // Ok(JsString::new(scope, "Ok").unwrap())
     Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
 }
 
 fn w_define_rule(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
-    let rule_predicate = vec![
-        Predicate {
-            ty: PredicateType::Trigger {
-                parameters: vec![
-                    ParameterDeclaration {
-                        name: "x".to_owned(),
-                        expression: Arc::new(Expression::Reference {
-                            attribute: 0,
-                        }),
-                    },
-                ],
-            },
-            tuple: ConstrainedTuple {
-                ty_id: 0,
-                constraints: vec![],
-                alias: "smk".to_owned(),
-            },
-        },
-        Predicate {
-            ty: PredicateType::Event {
-                selection: EventSelection::Last,
-                parameters: vec![
-                    ParameterDeclaration {
-                        name: "y".to_owned(),
-                        expression: Arc::new(Expression::Reference {
-                            attribute: 1,
-                        }),
-                    },
-                ],
-                timing: Timing {
-                    upper: 0,
-                    bound: TimingBound::Within {
-                        window: Duration::minutes(5),
-                    },
-                },
-            },
-            tuple: ConstrainedTuple {
-                ty_id: 1,
-                constraints: vec![
-                    Arc::new(Expression::BinaryOperation {
-                        operator: BinaryOperator::Equal,
-                        left: Box::new(Expression::Reference {
-                            attribute: 0,
-                        }),
-                        right: Box::new(Expression::Parameter {
-                            predicate: 0,
-                            parameter: 0,
-                        }),
-                    }),
-                    Arc::new(Expression::BinaryOperation {
-                        operator: BinaryOperator::GreaterThan,
-                        left: Box::new(Expression::Reference {
-                            attribute: 1,
-                        }),
-                        right: Box::new(Expression::Immediate {
-                            value: Value::Int(45),
-                        }),
-                    }),
-                ],
-                alias: "temp".to_owned(),
-            },
-        },];
-    let r_e_template = EventTemplate {
-        ty_id: 2,
-        attributes: vec![
-            Expression::Parameter {
-                predicate: 0,
-                parameter: 0,
-            },
-            Expression::Parameter {
-                predicate: 1,
-                parameter: 0,
-            },
-        ],};
-    define_rule(rule_predicate, r_e_template);
+    let str_rule = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
+
+    let rule_def = Json::from_str(&str_rule[..]).unwrap();//Json
+
+    define_rule(rule_def);
     write_status();
-    // Ok(JsString::new(scope, "Ok").unwrap())
     Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
 }
+// fn w_define_rule(call: Call) -> JsResult<JsString> {
+//     let scope = call.scope;
+//     let rule_predicate = vec![
+//         Predicate {
+//             ty: PredicateType::Trigger {
+//                 parameters: vec![
+//                     ParameterDeclaration {
+//                         name: "x".to_owned(),
+//                         expression: Arc::new(Expression::Reference {
+//                             attribute: 0,
+//                         }),
+//                     },
+//                 ],
+//             },
+//             tuple: ConstrainedTuple {
+//                 ty_id: 0,
+//                 constraints: vec![],
+//                 alias: "smk".to_owned(),
+//             },
+//         },
+//         Predicate {
+//             ty: PredicateType::Event {
+//                 selection: EventSelection::Last,
+//                 parameters: vec![
+//                     ParameterDeclaration {
+//                         name: "y".to_owned(),
+//                         expression: Arc::new(Expression::Reference {
+//                             attribute: 1,
+//                         }),
+//                     },
+//                 ],
+//                 timing: Timing {
+//                     upper: 0,
+//                     bound: TimingBound::Within {
+//                         window: Duration::minutes(5),
+//                     },
+//                 },
+//             },
+//             tuple: ConstrainedTuple {
+//                 ty_id: 1,
+//                 constraints: vec![
+//                     Arc::new(Expression::BinaryOperation {
+//                         operator: BinaryOperator::Equal,
+//                         left: Box::new(Expression::Reference {
+//                             attribute: 0,
+//                         }),
+//                         right: Box::new(Expression::Parameter {
+//                             predicate: 0,
+//                             parameter: 0,
+//                         }),
+//                     }),
+//                     Arc::new(Expression::BinaryOperation {
+//                         operator: BinaryOperator::GreaterThan,
+//                         left: Box::new(Expression::Reference {
+//                             attribute: 1,
+//                         }),
+//                         right: Box::new(Expression::Immediate {
+//                             value: Value::Int(45),
+//                         }),
+//                     }),
+//                 ],
+//                 alias: "temp".to_owned(),
+//             },
+//         },];
+//     let r_e_template = EventTemplate {
+//         ty_id: 2,
+//         attributes: vec![
+//             Expression::Parameter {
+//                 predicate: 0,
+//                 parameter: 0,
+//             },
+//             Expression::Parameter {
+//                 predicate: 1,
+//                 parameter: 0,
+//             },
+//         ],};
+//     define_rule(rule_predicate, r_e_template);
+//     write_status();
+//     // Ok(JsString::new(scope, "Ok").unwrap())
+//     Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
+// }
 
 fn w_subscribe(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
@@ -183,7 +203,6 @@ fn w_publish(call: Call) -> JsResult<JsString> {
 
     publish(conn_id, event);
     write_status();
-    // Ok(JsString::new(scope, "Ok").unwrap())
     Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
 }
 

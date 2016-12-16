@@ -1,0 +1,15 @@
+Queue Status:
+Number of queues/conn_ids: 3
+Connection IDs in use:
+  - 2
+     * Event { tuple: Tuple { ty_id: 2, data: [Str("area_1"), Int(50)] }, time: 2016-12-15T15:27:56.159979127Z }
+     * Event { tuple: Tuple { ty_id: 0, data: [Str("area_1")] }, time: 2016-12-15T15:27:56.159979127Z }
+     * Event { tuple: Tuple { ty_id: 1, data: [Str("area_1"), Int(50)] }, time: 2016-12-15T15:27:56.120276038Z }
+  - 3
+     * Event { tuple: Tuple { ty_id: 2, data: [Str("area_1"), Int(50)] }, time: 2016-12-15T15:27:56.159979127Z }
+     * Event { tuple: Tuple { ty_id: 0, data: [Str("area_1")] }, time: 2016-12-15T15:27:56.159979127Z }
+     * Event { tuple: Tuple { ty_id: 1, data: [Str("area_1"), Int(50)] }, time: 2016-12-15T15:27:56.120276038Z }
+  - 1
+     * Event { tuple: Tuple { ty_id: 2, data: [Str("area_1"), Int(50)] }, time: 2016-12-15T15:27:56.159979127Z }
+     * Event { tuple: Tuple { ty_id: 0, data: [Str("area_1")] }, time: 2016-12-15T15:27:56.159979127Z }
+     * Event { tuple: Tuple { ty_id: 1, data: [Str("area_1"), Int(50)] }, time: 2016-12-15T15:27:56.120276038Z }
