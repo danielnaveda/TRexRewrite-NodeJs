@@ -21,6 +21,8 @@ use std::{mem};
 
 use conn_queues::{insert_queue, pop_queue, print_queue_status,remove_queue,init_queue};
 
+use json_conversions::{json_to_event, json_to_event_dec};
+
 #[derive(Clone)]
 struct SingletonReader { inner: Arc<Mutex<TRex>> }
 
@@ -195,8 +197,8 @@ pub fn declare_event(event: Json){
     let mut engine = s.inner.lock().unwrap();
 
     // TODO: create the conversion function
-    // let event_struct = json_to_event(event);
-    // engine.define(event_struct);
+    let event_struct = json_to_event_dec(event);
+    engine.declare(event_struct);
 
     // engine.declare(TupleDeclaration {
     //     ty: TupleType::Event,
@@ -253,34 +255,37 @@ pub fn publish(conn_id: usize ,event: Json){
 }
 
 pub fn unknown_publish(event: Json){
-    // TODO: replace this with a function that converts Json event to Event struct
-    let obj_event = event.as_object().unwrap();//BTreeMap<String, Json>
-    let tuple = obj_event.get("tuple").unwrap();//Json
-    let obj_tuple = tuple.as_object().unwrap();//BTreeMap<String, Json>
-    let ty_id = obj_tuple.get("ty_id").unwrap();//Json
-    let data = obj_tuple.get("data").unwrap();//Json
-    let ty_id_u = ty_id.as_string().unwrap().parse::<usize>();// as usize;
-    let data_a = data.as_array().unwrap();//Vec<Json>
-
-    let mut vec_value: Vec<Value> = Vec::new();
-
-    for data_e in data_a.iter(){//Json
-        if data_e.as_string().unwrap().parse::<i32>().is_ok() {
-            vec_value.push(Value::Int(data_e.as_string().unwrap().parse::<i32>().unwrap()));
-        } else {
-            vec_value.push(Value::Str(String::from(data_e.as_string().unwrap())));
-        }
-    }
-
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
-    engine.publish(&Arc::new(Event {
-        tuple: Tuple {
-            ty_id: ty_id_u.unwrap(),
-            data: vec_value,
-        },
-        time: UTC::now(),
-    }));
+    engine.publish(&Arc::new(json_to_event(event)));
+
+    // let obj_event = event.as_object().unwrap();//BTreeMap<String, Json>
+    // let tuple = obj_event.get("tuple").unwrap();//Json
+    // let obj_tuple = tuple.as_object().unwrap();//BTreeMap<String, Json>
+    // let ty_id = obj_tuple.get("ty_id").unwrap();//Json
+    // let data = obj_tuple.get("data").unwrap();//Json
+    // let ty_id_u = ty_id.as_string().unwrap().parse::<usize>();// as usize;
+    // let data_a = data.as_array().unwrap();//Vec<Json>
+    //
+    // let mut vec_value: Vec<Value> = Vec::new();
+    //
+    // for data_e in data_a.iter(){//Json
+    //     if data_e.as_string().unwrap().parse::<i32>().is_ok() {
+    //         vec_value.push(Value::Int(data_e.as_string().unwrap().parse::<i32>().unwrap()));
+    //     } else {
+    //         vec_value.push(Value::Str(String::from(data_e.as_string().unwrap())));
+    //     }
+    // }
+    //
+    // let s = singleton();
+    // let mut engine = s.inner.lock().unwrap();
+    // engine.publish(&Arc::new(Event {
+    //     tuple: Tuple {
+    //         ty_id: ty_id_u.unwrap(),
+    //         data: vec_value,
+    //     },
+    //     time: UTC::now(),
+    // }));
 }
 
 pub fn get_notification(conn_id: usize) -> Option<Arc<Event>> {

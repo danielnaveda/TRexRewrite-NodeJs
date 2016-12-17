@@ -7,7 +7,8 @@ This will be later formalized through the JSON schema
 ### Subscribe
 ```json
 {
-  "event_type": "42"
+  "event_type": "42",
+  "callback_url": "127.0.0.1/notification" (optional)
 }
 ```
 
@@ -27,12 +28,37 @@ This will be later formalized through the JSON schema
 
 ### Declare Event
 ```json
-TODO
+{
+    "ty": "Event",
+    "id": "1",
+    "name": "temperature",
+    "attributes": [
+      {"name" : "area", "ty" : "Str"},
+      /*...*/
+      {"name" : "value", "ty" : "Int"}
+    ]
+}
 ```
-
-### Declare Rule
+<!-- TODO: finish the Rule definition -->
+### Define Rule
 ```json
-TODO
+{
+  "predicates" : [
+    {
+      "ty" : {
+        "parameters" : []
+      }
+      "tuple" : {}
+    },
+    /*...*/
+  ],
+  "filters" : [],
+  "event_template" : {
+    "ty_id" : "2",
+    "attributes" : []
+  },
+  "consuming" : []
+}
 ```
 
 ## Server->Client

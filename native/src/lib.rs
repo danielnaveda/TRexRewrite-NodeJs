@@ -23,6 +23,7 @@ use tesla::predicates::{ConstrainedTuple, EventSelection, ParameterDeclaration, 
 
 pub mod conn_queues;
 pub mod operations;
+pub mod json_conversions;
 
 use operations::{init_examples,declare_event, define_rule, subscribe, unsubscribe, publish, unknown_publish, get_notification, status};
 use conn_queues::write_status;
