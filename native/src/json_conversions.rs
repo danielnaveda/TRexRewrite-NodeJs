@@ -93,9 +93,23 @@ pub fn json_to_event_dec(json_event_dec:Json) -> TupleDeclaration {
 }
 
 
-pub fn json_to_rule_def(rule: Json) -> Rule {
+
+fn to_expression (json_input : Json) -> Expression {
+
+    match X {
+        "parameter" => {}
+    }
+
+    Expression:: {
+
+    }
 
 }
+// fn to_predicate (json_input : Json) -> Predicate {}
+// fn to_event_template (json_input : Json) -> EventTemplate {}
+// pub fn json_to_rule_def(rule: Json) -> Rule {}
+
+
 
 
 // println!("Rust::defineRule(...)");

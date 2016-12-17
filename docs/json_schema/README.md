@@ -45,17 +45,35 @@ This will be later formalized through the JSON schema
 {
   "predicates" : [
     {
-      "ty" : {
-        "parameters" : []
+      "ty" : "Trigger",
+      "content" : {
+        "parameters" : [
+          {
+            "name" : "",
+            "expression" : ""
+          },
+          /*...*/
+        ]
       }
-      "tuple" : {}
+      "tuple" : {
+        "ty_id" : 0,
+        "constraints" : [],
+        "alias" : "smk"
+      }
     },
     /*...*/
   ],
   "filters" : [],
   "event_template" : {
     "ty_id" : "2",
-    "attributes" : []
+    "attributes" : [
+      {
+        "type" : "parameter",
+        "predicate": 0,
+        "parameter" : 0
+      },
+      /*...*/
+    ]
   },
   "consuming" : []
 }
