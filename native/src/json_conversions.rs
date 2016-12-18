@@ -12,7 +12,7 @@ use chrono::{Duration, UTC};
 use std::sync::Arc;
 use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Rule, Tuple, TupleDeclaration,TupleType};
 use tesla::expressions::{BasicType, BinaryOperator, UnaryOperator, Expression, Value};
-use tesla::predicates::{ConstrainedTuple, EventSelection, ParameterDeclaration, Predicate,PredicateType, Timing, TimingBound};
+use tesla::predicates::{ConstrainedTuple, EventSelection, ParameterDeclaration, Predicate,PredicateType, Timing, TimingBound, Order, Ordering, Aggregator};
 use trex::TRex;
 use trex::stack::StackProvider;
 
@@ -127,23 +127,68 @@ impl JsonConversion for BinaryOperator {
     }
 }
 
-// impl JsonConversion for Expression {
-//     fn from_json(json_i : Json) -> Self {
-//
-//     }
-// }
-//
-// impl JsonConversion for TupleType {
-//     fn from_json(json_i : Json) -> Self {
-//
-//     }
-// }
-//
-// impl JsonConversion for AttributeDeclaration {
-//     fn from_json(json_i : Json) -> Self {
-//
-//     }
-// }
+impl JsonConversion for Expression {
+    fn from_json(json_i : Json) -> Self {
+        match json_i.as_object().unwrap().get("type").unwrap().as_string().unwrap() {
+            "Immediate" => {
+                Expression::Immediate {
+                    value: Value::from_json(json_i.as_object().unwrap().get("value").unwrap().clone())
+                }
+            },
+            "Reference" => {
+                Expression::Reference {
+                    attribute: json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<usize>().unwrap()
+                }
+            },
+            "Aggregate" => {
+                Expression::Aggregate
+            },
+            "Parameter" => {
+                Expression::Parameter {
+                    predicate: json_i.as_object().unwrap().get("predicate").unwrap().as_string().unwrap().parse::<usize>().unwrap(),
+                    parameter: json_i.as_object().unwrap().get("parameter").unwrap().as_string().unwrap().parse::<usize>().unwrap()
+                }
+            },
+            // "Cast" => {
+            //     Value::Str(
+            //         json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<String>().unwrap()
+            //     )
+            // },
+            // "UnaryOperation" => {
+            //     Value::Str(
+            //         json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<String>().unwrap()
+            //     )
+            // },
+            // "BinaryOperation" => {
+            //     Value::Str(
+            //         json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<String>().unwrap()
+            //     )
+            // },
+            _ => {
+                Expression::Aggregate
+            }
+        }
+    }
+}
+
+impl JsonConversion for TupleType {
+    fn from_json(json_i : Json) -> Self {
+        match json_i.as_object().unwrap().get("TupleType").unwrap().as_string().unwrap() {
+            "Static" => {TupleType::Static},
+            "Event" => {TupleType::Event},
+            _ => {TupleType::Static}
+        }
+    }
+}
+
+impl JsonConversion for AttributeDeclaration {
+    fn from_json(json_i : Json) -> Self {
+        AttributeDeclaration {
+            name: String::from(json_i.as_object().unwrap().get("name").unwrap().as_string().unwrap()),
+            ty: BasicType::from_json(json_i.as_object().unwrap().get("BasicType").unwrap().clone()),
+        }
+    }
+}
 
 impl JsonConversion for TupleDeclaration {
     fn from_json(json_i : Json) -> Self {
@@ -206,49 +251,100 @@ impl JsonConversion for TupleDeclaration {
 //
 //     }
 // }
-//
-// impl JsonConversion for EventSelection {
-//     fn from_json(json_i : Json) -> Self {
-//
-//     }
-// }
-//
-// impl JsonConversion for Aggregator {
-//     fn from_json(json_i : Json) -> Self {
-//
-//     }
-// }
-//
+
+impl JsonConversion for EventSelection {
+    fn from_json(json_i : Json) -> Self {
+        match json_i.as_object().unwrap().get("EventSelection").unwrap().as_string().unwrap() {
+            "Each" => {EventSelection::Each},
+            "First" => {EventSelection::First},
+            "Last" => {EventSelection::Last},
+            _ => {EventSelection::Each}
+        }
+    }
+}
+
+impl JsonConversion for Aggregator {
+    fn from_json(json_i : Json) -> Self {
+        match json_i.as_object().unwrap().get("Aggregator").unwrap().as_string().unwrap() {
+            "Avg" => {
+                Aggregator::Avg(
+                    json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<usize>().unwrap()
+                )
+            },
+            "Sum" => {
+                Aggregator::Sum(
+                    json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<usize>().unwrap()
+                )
+            },
+            "Max" => {
+                Aggregator::Max(
+                    json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<usize>().unwrap()
+                )
+            },
+            "Min" => {
+                Aggregator::Min(
+                    json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<usize>().unwrap()
+                )
+            },
+            _ => {
+                Aggregator::Avg(
+                    json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<usize>().unwrap()
+                )
+            }
+        }
+    }
+}
+
 // impl JsonConversion for ParameterDeclaration {
 //     fn from_json(json_i : Json) -> Self {
 //
 //     }
 // }
-//
-// impl JsonConversion for TimingBound {
-//     fn from_json(json_i : Json) -> Self {
-//
-//     }
-// }
-//
-// impl JsonConversion for Timing {
-//     fn from_json(json_i : Json) -> Self {
-//
-//     }
-// }
-//
-// impl JsonConversion for Order {
-//     fn from_json(json_i : Json) -> Self {
-//
-//     }
-// }
-//
-// impl JsonConversion for Ordering {
-//     fn from_json(json_i : Json) -> Self {
-//
-//     }
-// }
-//
+
+impl JsonConversion for TimingBound {
+    fn from_json(json_i : Json) -> Self {
+        match json_i.as_object().unwrap().get("type").unwrap().as_string().unwrap() {
+            "Within" => {
+                TimingBound::Within { window: Duration::seconds(json_i.as_object().unwrap().get("lower").unwrap().as_string().unwrap().parse::<i64>().unwrap()) }
+            },
+            "Between" => {
+                TimingBound::Between { lower: json_i.as_object().unwrap().get("lower").unwrap().as_string().unwrap().parse::<usize>().unwrap() }
+            },
+            _ => {
+                TimingBound::Within { window: Duration::seconds(json_i.as_object().unwrap().get("lower").unwrap().as_string().unwrap().parse::<i64>().unwrap()) }
+            },
+        }
+    }
+}
+
+impl JsonConversion for Timing {
+    fn from_json(json_i : Json) -> Self {
+        Timing {
+            upper: json_i.as_object().unwrap().get("upper").unwrap().as_string().unwrap().parse::<usize>().unwrap(),
+            bound: TimingBound::from_json(json_i.as_object().unwrap().get("bound").unwrap().clone()),
+        }
+    }
+}
+
+impl JsonConversion for Order {
+    fn from_json(json_i : Json) -> Self {
+        match json_i.as_object().unwrap().get("Order").unwrap().as_string().unwrap() {
+            "Asc" => {Order::Asc},
+            "Desc" => {Order::Desc},
+            _ => {Order::Asc}
+        }
+    }
+}
+
+impl JsonConversion for Ordering {
+    fn from_json(json_i : Json) -> Self {
+        Ordering {
+            attribute: json_i.as_object().unwrap().get("attribute").unwrap().as_string().unwrap().parse::<usize>().unwrap(),
+            direction: Order::from_json(json_i.as_object().unwrap().get("order").unwrap().clone()),
+        }
+    }
+}
+
 // impl JsonConversion for PredicateType {
 //     fn from_json(json_i : Json) -> Self {
 //
