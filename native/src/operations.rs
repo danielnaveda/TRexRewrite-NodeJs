@@ -21,7 +21,8 @@ use std::{mem};
 
 use conn_queues::{insert_queue, pop_queue, print_queue_status,remove_queue,init_queue};
 
-use json_conversions::{json_to_event, json_to_event_dec};
+// use json_conversions::{json_to_event, json_to_event_dec, JsonConversion};
+use json_conversions::{JsonConversion};
 
 #[derive(Clone)]
 struct SingletonReader { inner: Arc<Mutex<TRex>> }
@@ -197,7 +198,8 @@ pub fn declare_event(event: Json){
     let mut engine = s.inner.lock().unwrap();
 
     // TODO: create the conversion function
-    let event_struct = json_to_event_dec(event);
+    // let event_struct = json_to_event_dec(event);
+    let event_struct = TupleDeclaration::from_json(event);
     engine.declare(event_struct);
 
     // engine.declare(TupleDeclaration {
@@ -257,7 +259,11 @@ pub fn publish(conn_id: usize ,event: Json){
 pub fn unknown_publish(event: Json){
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
-    engine.publish(&Arc::new(json_to_event(event)));
+
+    // engine.publish(&Arc::new(json_to_event(event)));
+    engine.publish(&Arc::new(Event::from_json(event)));
+
+
 
     // let obj_event = event.as_object().unwrap();//BTreeMap<String, Json>
     // let tuple = obj_event.get("tuple").unwrap();//Json
