@@ -234,23 +234,43 @@ impl JsonConversion for TupleDeclaration {
     }
 }
 
-// impl JsonConversion for EventTemplate {
-//     fn from_json(json_i : Json) -> Self {
-//
-//     }
-// }
-//
+impl JsonConversion for EventTemplate {
+    fn from_json(json_i : Json) -> Self {
+
+        let mut expressions : Vec<Expression> = Vec::new();
+
+        for expression in json_i.as_object().unwrap().get("attributes").unwrap().as_array().unwrap().iter() {
+            expressions.push(Expression::from_json(expression.clone()));
+        }
+
+        EventTemplate {
+            ty_id : json_i.as_object().unwrap().get("ty_id").unwrap().as_string().unwrap().parse::<usize>().unwrap(),
+            attributes: expressions
+        }
+    }
+}
+
 // impl JsonConversion for Rule {
 //     fn from_json(json_i : Json) -> Self {
 //
 //     }
 // }
-//
-// impl JsonConversion for Tuple {
-//     fn from_json(json_i : Json) -> Self {
-//
-//     }
-// }
+
+impl JsonConversion for Tuple {
+    fn from_json(json_i : Json) -> Self {
+
+        let mut values : Vec<Value> = Vec::new();
+
+        for value in json_i.as_object().unwrap().get("data").unwrap().as_array().unwrap().iter() {
+            values.push(Value::from_json(value.clone()));
+        }
+
+        Tuple {
+            ty_id: json_i.as_object().unwrap().get("ty_id").unwrap().as_string().unwrap().parse::<usize>().unwrap().clone(),
+            data: values,
+        }
+    }
+}
 
 impl JsonConversion for EventSelection {
     fn from_json(json_i : Json) -> Self {
@@ -295,11 +315,14 @@ impl JsonConversion for Aggregator {
     }
 }
 
-// impl JsonConversion for ParameterDeclaration {
-//     fn from_json(json_i : Json) -> Self {
-//
-//     }
-// }
+impl JsonConversion for ParameterDeclaration {
+    fn from_json(json_i : Json) -> Self {
+        ParameterDeclaration {
+            name: String::from(json_i.as_object().unwrap().get("name").unwrap().as_string().unwrap()),
+            expression: Arc::new(Expression::from_json(json_i.as_object().unwrap().get("expression").unwrap().clone())),
+        }
+    }
+}
 
 impl JsonConversion for TimingBound {
     fn from_json(json_i : Json) -> Self {
@@ -350,13 +373,24 @@ impl JsonConversion for Ordering {
 //
 //     }
 // }
-//
-// impl JsonConversion for ConstrainedTuple {
-//     fn from_json(json_i : Json) -> Self {
-//
-//     }
-// }
-//
+
+impl JsonConversion for ConstrainedTuple {
+    fn from_json(json_i : Json) -> Self {
+
+        let mut expressions : Vec<Arc<Expression>> = Vec::new();
+
+        for expression in json_i.as_object().unwrap().get("constraints").unwrap().as_array().unwrap().iter() {
+            expressions.push(Arc::new(Expression::from_json(expression.clone())));
+        }
+
+        ConstrainedTuple {
+            ty_id: json_i.as_object().unwrap().get("ty_id").unwrap().as_string().unwrap().parse::<usize>().unwrap().clone(),
+            constraints: expressions,
+            alias: String::from(json_i.as_object().unwrap().get("alias").unwrap().as_string().unwrap()),
+        }
+    }
+}
+
 // impl JsonConversion for Predicate {
 //     fn from_json(json_i : Json) -> Self {
 //
