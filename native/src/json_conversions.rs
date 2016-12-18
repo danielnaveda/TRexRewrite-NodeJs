@@ -250,11 +250,34 @@ impl JsonConversion for EventTemplate {
     }
 }
 
-// impl JsonConversion for Rule {
-//     fn from_json(json_i : Json) -> Self {
-//
-//     }
-// }
+impl JsonConversion for Rule {
+    fn from_json(json_i : Json) -> Self {
+
+        let mut predicates : Vec<Predicate> = Vec::new();
+        let mut filters : Vec<Arc<Expression>> = Vec::new();
+        let mut consumings : Vec<usize> = Vec::new();
+
+        for predicate in json_i.as_object().unwrap().get("predicates").unwrap().as_array().unwrap().iter() {
+            predicates.push(Predicate::from_json(predicate.clone()));
+        }
+
+        for filter in json_i.as_object().unwrap().get("filters").unwrap().as_array().unwrap().iter() {
+            filters.push(Arc::new(Expression::from_json(filter.clone())));
+        }
+
+        for consuming in json_i.as_object().unwrap().get("consuming").unwrap().as_array().unwrap().iter() {
+            consumings.push(consuming.as_string().unwrap().parse::<usize>().unwrap().clone());
+        }
+
+
+        Rule {
+            predicates: predicates,
+            filters: filters,
+            event_template: EventTemplate::from_json(json_i.as_object().unwrap().get("event_template").unwrap().clone()),
+            consuming: consumings,
+        }
+    }
+}
 
 impl JsonConversion for Tuple {
     fn from_json(json_i : Json) -> Self {
@@ -368,11 +391,44 @@ impl JsonConversion for Ordering {
     }
 }
 
-// impl JsonConversion for PredicateType {
-//     fn from_json(json_i : Json) -> Self {
-//
-//     }
-// }
+impl JsonConversion for PredicateType {
+    fn from_json(json_i : Json) -> Self {
+
+        match json_i.as_object().unwrap().get("type").unwrap().as_string().unwrap() {
+            "Trigger" => {
+                let mut parameters : Vec<ParameterDeclaration> = Vec::new();
+
+                for parameter in json_i.as_object().unwrap().get("parameters").unwrap().as_array().unwrap().iter() {
+                    parameters.push(ParameterDeclaration::from_json(parameter.clone()));
+                }
+
+                PredicateType::Trigger { parameters: parameters }
+            },
+            "Event" => {
+                let mut parameters : Vec<ParameterDeclaration> = Vec::new();
+
+                for parameter in json_i.as_object().unwrap().get("parameters").unwrap().as_array().unwrap().iter() {
+                    parameters.push(ParameterDeclaration::from_json(parameter.clone()));
+                }
+
+                PredicateType::Event {
+                    selection: EventSelection::Each, //TODO: replace this
+                    parameters: parameters,
+                    timing: Timing { upper: (1 as usize), bound: TimingBound::Between {lower: (1 as usize)}},//TODO: replace this
+                }
+            },
+            _ => {
+                let mut parameters : Vec<ParameterDeclaration> = Vec::new();
+
+                for parameter in json_i.as_object().unwrap().get("parameters").unwrap().as_array().unwrap().iter() {
+                    parameters.push(ParameterDeclaration::from_json(parameter.clone()));
+                }
+
+                PredicateType::Trigger { parameters: parameters }
+            },
+        }
+    }
+}
 
 impl JsonConversion for ConstrainedTuple {
     fn from_json(json_i : Json) -> Self {
@@ -391,11 +447,14 @@ impl JsonConversion for ConstrainedTuple {
     }
 }
 
-// impl JsonConversion for Predicate {
-//     fn from_json(json_i : Json) -> Self {
-//
-//     }
-// }
+impl JsonConversion for Predicate {
+    fn from_json(json_i : Json) -> Self {
+        Predicate {
+            ty: PredicateType::from_json(json_i.as_object().unwrap().get("ty").unwrap().clone()),
+            tuple: ConstrainedTuple::from_json(json_i.as_object().unwrap().get("tuple").unwrap().clone()),
+        }
+    }
+}
 
 
 
