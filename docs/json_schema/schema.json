@@ -1,341 +1,626 @@
 {
-    "definitions": {
-        "BasicType": {
-            "title": "BasicType",
-            "enum": ["Int", "Float", "Bool", "Str"]
-        },
-        "Value": {
-            "title": "Value",
-            "type": "object",
+  "$ref": "#/definitions/AttributeDeclaration",
 
-            "properties": {
-                "type": {
-                    "enum": ["Int", "Float", "Bool", "Str"]
-                },
-                "value": {
-                    "type": "string"
-                }
-            },
-
-            "required": ["type", "value"]
-        },
-        "UnaryOperator": {
-            "title": "UnaryOperator",
-            "enum": ["Minus", "Not"]
-        },
-        "BinaryOperator": {
-            "title": "BinaryOperator",
-            "enum": [
-                "Plus",
-                "Minus",
-                "Times",
-                "Division",
-                "Equal",
-                "NotEqual",
-                "GreaterThan",
-                "GreaterEqual",
-                "LowerThan",
-                "LowerEqual"
-            ]
-        },
-        "Expression": {
-            "title": "Expression",
-            "enum": [
-              {
-                  "Immediate": {
-                      "value": {"$ref": "#/definitions/Value"}
-                  }
-              },
-              {
-                  "Reference": {
-                      "attribute" : {"type" : "integer"}
-                  }
-              },
-
-                  "Aggregate"
-               ,
-              {
-                  "Parameter": {
-                      "predicate" : {"type": "integer"},
-                      "parameter" : {"type": "integer"}
-                  }
-              },
-              {
-                  "Cast": {
-                      "ty": {"$ref": "#/definitions/BasicType"},
-                      "expression": {"$ref": "#/definitions/Expression"}
-                  }
-              },
-              {
-                  "UnaryOperation": {
-                      "operator": {"$ref": "#/definitions/UnaryOperator"},
-                      "expression": {"$ref": "#/definitions/Expression"}
-                  }
-              },
-              {
-                  "BinaryOperation": {
-                      "operator": {"$ref": "#/definitions/BinaryOperator"},
-                      "left": {"$ref": "#/definitions/Expression"},
-                      "right": {"$ref": "#/definitions/Expression"}
-                  }
-              }
+  "definitions": {
+    "BasicType": {
+      "title": "BasicType",
+      "enum": [
+        "Int",
+        "Float",
+        "Bool",
+        "Str"
+      ]
+    },
+    "Value": {
+      "title": "Value",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "Int",
+            "Float",
+            "Bool",
+            "Str"
           ]
         },
-        "TupleType": {
-            "title": "TupleType",
-            "enum": ["Static", "Event"]
-        },
-        "AttributeDeclaration": {
-            "title": "AttributeDeclaration",
-            "type": "object",
-
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "ty": {"$ref": "#/definitions/BasicType"}
-            },
-
-            "required": ["name", "ty"]
-        },
-        "TupleDeclaration": {
-            "title": "TupleDeclaration",
-            "type": "object",
-
-            "properties": {
-                "ty": {"$ref": "#/definitions/TupleType"},
-                "id": {"type": "integer"},
-                "name": {"type": "string"},
-                "attributes": {
-                  "type": "array",
-                  "items": {"$ref": "#/definitions/BasicType"}
-                }
-            },
-            "required": ["ty", "id", "name", "attributes"]
-        },
-        "EventTemplate": {
-            "title": "EventTemplate",
-            "type": "object",
-
-            "properties": {
-                "ty_id": {"type": "integer"},
-                "attributes": {
-                  "type": "array",
-                  "items": { "$ref": "#/definitions/Expression"}
-                }
-            },
-            "required": ["ty_id", "attributes"]
-        },
-        "Rule": {
-            "title": "Rule",
-            "type": "object",
-
-            "properties": {
-                "predicates": {
-                    "type": "array",
-                    "items": {"$ref": "#/definitions/Predicate"}
-                },
-                "filters": {
-                    "type": "array",
-                    "items": {"$ref": "#/definitions/Expression"}
-                },
-                "event_template": {"$ref": "#/definitions/EventTemplate"},
-                "consuming": {
-                    "type": "array",
-                    "items": {"type": "integer"}
-                }
-            },
-            "required": ["predicates", "filters", "event_template", "consuming"]
-        },
-        "Tuple": {
-            "title": "Tuple",
-            "type": "object",
-
-            "properties": {
-                "ty_id": {"type": "integer"},
-                "data": {
-                  "type": "array",
-                  "items": {"$ref": "#/definitions/Value"}
-                }
-            },
-            "required": ["ty_id", "data"]
-        },
-        "Event": {
-            "title": "Event",
-            "type": "object",
-            "properties": {
-                "tuple": {"$ref": "#/definitions/Tuple"},
-                "time": {"type": "string"}
-            },
-            "required": ["tuple", "time"]
-        },
-        "EventSelection": {
-            "title": "EventSelection",
-            "enum": ["Each", "First", "Last"]
-        },
-        "Aggregator": {
-            "title": "Aggregator",
-            "type": "object",
-
-            "properties": {
-                "type": {"enum": ["Avg", "Sum", "Max", "Min"]},
-                "value": {"type": "integer"}
-            },
-            "required": ["type", "value"]
-        },
-        "ParameterDeclaration": {
-            "title": "ParameterDeclaration",
-            "type": "object",
-
-            "properties": {
-                "name": {"type": "string"},
-                "expression": {"$ref": "#/definitions/Expression"}
-            },
-            "required": ["name", "expression"]
-        },
-        "TimingBound": {
-            "title": "TimingBound",
-
-            "enum": [
-              {
-                "Within": {
-                  "type": "string"
-                }
-              },
-              {
-                "Between": {
-                  "type": "integer"
-                }
-              },
-            ]
-        },
-        "Timing": {
-            "title": "Timing",
-            "type": "object",
-
-            "properties": {
-                "upper": {"type": "integer"},
-                "bound": {"$def": "#/definitions/TimingBound"}
-            },
-            "required": ["upper", "bound"]
-        },
-        "Order": {
-            "title": "Order",
-            "enum": ["Asc", "Desc"]
-        },
-        "Ordering": {
-            "title": "Ordering",
-            "type": "object",
-
-            "properties": {
-                "attribute": {"type": "integer"},
-                "direction": {"$def": "#/definitions/Order"}
-            },
-            "required": ["attribute", "direction"]
-        },
-        "PredicateType": {
-            "title": "PredicateType",
-            "enum": [
-              {
-                "Trigger": {
-                  "type": "object",
-                  "properties": {
-                    "parameters": {
-                      "type": "array",
-                      "items": {"$ref": "#/definitions/ParameterDeclaration"}
-                    }
-                  }
-                }
-              },
-              {
-                "Event": {
-                  "type": "object",
-                  "properties": {
-                    "selection": {"$ref": "#/definitions/EventSelection"},
-                    "parameters": {
-                      "type": "array",
-                      "items": {"$ref": "#/definitions/ParameterDeclaration"}
-                    },
-                    "timing": {"$ref": "#/definitions/Timing"}
-                  }
-                }
-              },
-              {
-                "OrderedStatic": {
-                  "type": "object",
-                  "properties": {
-                    "parameters": {
-                      "type": "array",
-                      "items": {"$ref": "#/definitions/ParameterDeclaration"}
-                    },
-                    "ordering": {
-                      "type": "array",
-                      "items": {"$ref": "#/definitions/Ordering"}
-                    },
-                  }
-                }
-              },
-              {
-                "UnorderedStatic": {
-                  "type": "object",
-                  "properties": {
-                    "parameters": {
-                      "type": "array",
-                      "items": {"$ref": "#/definitions/ParameterDeclaration"}
-                    }
-                  }
-                }
-              },
-              {
-                "EventAggregate": {
-                  "type": "object",
-                  "properties": {
-                    "aggregator": {"$ref": "#/definitions/Aggregator"},
-                    "parameter": {"$ref": "#/definitions/ParameterDeclaration"},
-                    "timing": {"$ref": "#/definitions/Timing"}
-                  }
-                }
-              },
-              {
-                "StaticAggregate": {
-                  "type": "object",
-                  "properties": {
-                    "aggregator": {"$ref": "#/definitions/Aggregator"},
-                    "parameter": {"$ref": "#/definitions/ParameterDeclaration"}
-                  }
-                }
-              },
-              {
-                "EventNegation": {
-                  "type": "object",
-                  "properties": {
-                    "timing": {"$ref": "#/definitions/Timing"}
-                  }
-                }
-              },
-              {"StaticNegation"}
-            ]
-        },
-        "ConstrainedTuple": {
-            "title": "ConstrainedTuple",
-            "type": "object",
-
-            "properties": {
-                "ty_id": {"type": "integer"},
-                "constraints": {"type": "array", "items": {"$ref": "#/definitions/Expression"}},
-                "alias": {"type": "string"}
-            },
-            "required": ["ty_id", "constraints", "alias"]
-        },
-        "Predicate": {
-            "title": "Predicate",
-            "type": "object",
-
-            "properties": {
-                "ty": {"$ref": "#/definitions/PredicateType"},
-                "tuple": {"$ref": "#/definitions/ConstrainedTuple"}
-            },
-            "required": []
+        "value": {
+          "type": "string"
         }
+      },
+      "required": [
+        "type",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "UnaryOperator": {
+      "title": "UnaryOperator",
+      "enum": [
+        "Minus",
+        "Not"
+      ]
+    },
+    "BinaryOperator": {
+      "title": "BinaryOperator",
+      "enum": [
+        "Plus",
+        "Minus",
+        "Times",
+        "Division",
+        "Equal",
+        "NotEqual",
+        "GreaterThan",
+        "GreaterEqual",
+        "LowerThan",
+        "LowerEqual"
+      ]
+    },
+    "Expression": {
+      "title": "Expression",
+      "type": "object",
+      "oneOf": [
+        {
+          "properties": {
+            "Immediate": {
+              "type": "object",
+
+              "properties": {
+                "value": {
+                  "$ref": "#/definitions/Value"
+                }
+              },
+              "required": [
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "Immediate"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "Reference": {
+              "type": "object",
+
+              "properties": {
+                "attribute": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "attribute"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "Reference"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "Aggregate": {"type": "integer"}
+          },
+          "required": [
+            "Aggregate"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "Parameter": {
+              "type": "object",
+              "properties":{
+                "predicate": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "parameter": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "predicate",
+                "parameter"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "Parameter"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "Cast": {
+              "type": "object",
+              "properties": {
+                "ty": {
+                  "$ref": "#/definitions/BasicType"
+                },
+                "expression": {
+                  "$ref": "#/definitions/Expression"
+                }
+              },
+              "required": [
+                "ty",
+                "expression"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "Cast"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "UnaryOperation": {
+              "type": "object",
+
+              "properties": {
+                "operator": {
+                  "$ref": "#/definitions/UnaryOperator"
+                },
+                "expression": {
+                  "$ref": "#/definitions/Expression"
+                }
+              },
+              "required": [
+                "operator",
+                "expression"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "UnaryOperation"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "BinaryOperation": {
+              "properties": {
+                "operator": {
+                  "$ref": "#/definitions/BinaryOperator"
+                },
+                "left": {
+                  "$ref": "#/definitions/Expression"
+                },
+                "right": {
+                  "$ref": "#/definitions/Expression"
+                }
+              },
+              "required": [
+                "operator",
+                "left",
+                "right"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "BinaryOperation"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "TupleType": {
+      "title": "TupleType",
+      "enum": [
+        "Static",
+        "Event"
+      ]
+    },
+    "AttributeDeclaration": {
+      "title": "AttributeDeclaration",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "ty": {
+          "$ref": "#/definitions/BasicType"
+        }
+      },
+      "required": [
+        "name",
+        "ty"
+      ],
+      "additionalProperties": false
+    },
+    "TupleDeclaration": {
+      "title": "TupleDeclaration",
+      "type": "object",
+      "properties": {
+        "ty": {
+          "$ref": "#/definitions/TupleType"
+        },
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "name": {
+          "type": "string"
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BasicType"
+          }
+        }
+      },
+      "required": [
+        "ty",
+        "id",
+        "name",
+        "attributes"
+      ],
+      "additionalProperties": false
+    },
+    "EventTemplate": {
+      "title": "EventTemplate",
+      "type": "object",
+      "properties": {
+        "ty_id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Expression"
+          }
+        }
+      },
+      "required": [
+        "ty_id",
+        "attributes"
+      ],
+      "additionalProperties": false
+    },
+    "Rule": {
+      "title": "Rule",
+      "type": "object",
+      "properties": {
+        "predicates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Predicate"
+          }
+        },
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Expression"
+          }
+        },
+        "event_template": {
+          "$ref": "#/definitions/EventTemplate"
+        },
+        "consuming": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "required": [
+        "predicates",
+        "filters",
+        "event_template",
+        "consuming"
+      ],
+      "additionalProperties": false
+    },
+    "Tuple": {
+      "title": "Tuple",
+      "type": "object",
+      "properties": {
+        "ty_id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Value"
+          }
+        }
+      },
+      "required": [
+        "ty_id",
+        "data"
+      ],
+      "additionalProperties": false
+    },
+    "Event": {
+      "title": "Event",
+      "type": "object",
+      "properties": {
+        "tuple": {
+          "$ref": "#/definitions/Tuple"
+        },
+        "time": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tuple",
+        "time"
+      ],
+      "additionalProperties": false
+    },
+    "EventSelection": {
+      "title": "EventSelection",
+      "enum": [
+        "Each",
+        "First",
+        "Last"
+      ]
+    },
+    "Aggregator": {
+      "title": "Aggregator",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "Avg",
+            "Sum",
+            "Max",
+            "Min"
+          ]
+        },
+        "value": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "type",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "ParameterDeclaration": {
+      "title": "ParameterDeclaration",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "expression": {
+          "$ref": "#/definitions/Expression"
+        }
+      },
+      "required": [
+        "name",
+        "expression"
+      ],
+      "additionalProperties": false
+    },
+    "TimingBound": {
+      "title": "TimingBound",
+      "oneOf": [
+        {
+          "Within": {
+            "type": "string"
+          }
+        },
+        {
+          "Between": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      ]
+    },
+    "Timing": {
+      "title": "Timing",
+      "type": "object",
+      "properties": {
+        "upper": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "bound": {
+          "$def": "#/definitions/TimingBound"
+        }
+      },
+      "required": [
+        "upper",
+        "bound"
+      ],
+      "additionalProperties": false
+    },
+    "Order": {
+      "title": "Order",
+      "enum": [
+        "Asc",
+        "Desc"
+      ]
+    },
+    "Ordering": {
+      "title": "Ordering",
+      "type": "object",
+      "properties": {
+        "attribute": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "direction": {
+          "$def": "#/definitions/Order"
+        }
+      },
+      "required": [
+        "attribute",
+        "direction"
+      ],
+      "additionalProperties": false
+    },
+    "PredicateType": {
+      "title": "PredicateType",
+      "oneOf": [
+        {
+          "Trigger": {
+            "type": "object",
+            "properties": {
+              "parameters": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ParameterDeclaration"
+                }
+              }
+            }
+          }
+        },
+        {
+          "Event": {
+            "type": "object",
+            "properties": {
+              "selection": {
+                "$ref": "#/definitions/EventSelection"
+              },
+              "parameters": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ParameterDeclaration"
+                }
+              },
+              "timing": {
+                "$ref": "#/definitions/Timing"
+              }
+            }
+          }
+        },
+        {
+          "OrderedStatic": {
+            "type": "object",
+            "properties": {
+              "parameters": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ParameterDeclaration"
+                }
+              },
+              "ordering": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Ordering"
+                }
+              }
+            }
+          }
+        },
+        {
+          "UnorderedStatic": {
+            "type": "object",
+            "properties": {
+              "parameters": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ParameterDeclaration"
+                }
+              }
+            }
+          }
+        },
+        {
+          "EventAggregate": {
+            "type": "object",
+            "properties": {
+              "aggregator": {
+                "$ref": "#/definitions/Aggregator"
+              },
+              "parameter": {
+                "$ref": "#/definitions/ParameterDeclaration"
+              },
+              "timing": {
+                "$ref": "#/definitions/Timing"
+              }
+            }
+          }
+        },
+        {
+          "StaticAggregate": {
+            "type": "object",
+            "properties": {
+              "aggregator": {
+                "$ref": "#/definitions/Aggregator"
+              },
+              "parameter": {
+                "$ref": "#/definitions/ParameterDeclaration"
+              }
+            }
+          }
+        },
+        {
+          "EventNegation": {
+            "type": "object",
+            "properties": {
+              "timing": {
+                "$ref": "#/definitions/Timing"
+              }
+            }
+          }
+        },
+        {
+          "StaticNegation": {}
+        }
+      ]
+    },
+    "ConstrainedTuple": {
+      "title": "ConstrainedTuple",
+      "type": "object",
+      "properties": {
+        "ty_id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Expression"
+          }
+        },
+        "alias": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "ty_id",
+        "constraints",
+        "alias"
+      ],
+      "additionalProperties": false
+    },
+    "Predicate": {
+      "title": "Predicate",
+      "type": "object",
+      "properties": {
+        "ty": {
+          "$ref": "#/definitions/PredicateType"
+        },
+        "tuple": {
+          "$ref": "#/definitions/ConstrainedTuple"
+        }
+      },
+      "required": [
+        "ty",
+        "tuple"
+      ],
+      "additionalProperties": false
     }
+  }
 }
