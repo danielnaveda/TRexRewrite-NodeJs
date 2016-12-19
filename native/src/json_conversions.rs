@@ -59,7 +59,8 @@ impl JsonConversion for Event {
 impl JsonConversion for BasicType {
     fn from_json(json_i : Json) -> Self {
         println!("BasicType::from_json: {:?}", json_i);
-        match json_i.as_object().unwrap().get("BasicType").unwrap().as_string().unwrap() {
+        // match json_i.as_object().unwrap().get("BasicType").unwrap().as_string().unwrap() {
+        match json_i.as_string().unwrap() {
             "Int" => {BasicType::Int},
             "Float" => {BasicType::Float},
             "Bool" => {BasicType::Bool},
@@ -135,52 +136,56 @@ impl JsonConversion for BinaryOperator {
 impl JsonConversion for Expression {
     fn from_json(json_i : Json) -> Self {
         println!("Expression::from_json: {:?}", json_i);
-        match json_i.as_object().unwrap().get("type").unwrap().as_string().unwrap() {
-            "Immediate" => {
-                Expression::Immediate {
-                    value: Value::from_json(json_i.as_object().unwrap().get("value").unwrap().clone())
-                }
-            },
-            "Reference" => {
-                Expression::Reference {
-                    attribute: json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<usize>().unwrap()
-                }
-            },
-            "Aggregate" => {
-                Expression::Aggregate
-            },
-            "Parameter" => {
-                Expression::Parameter {
-                    predicate: json_i.as_object().unwrap().get("predicate").unwrap().as_string().unwrap().parse::<usize>().unwrap(),
-                    parameter: json_i.as_object().unwrap().get("parameter").unwrap().as_string().unwrap().parse::<usize>().unwrap()
-                }
-            },
-            // "Cast" => {
-            //     Value::Str(
-            //         json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<String>().unwrap()
-            //     )
-            // },
-            // "UnaryOperation" => {
-            //     Value::Str(
-            //         json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<String>().unwrap()
-            //     )
-            // },
-            // "BinaryOperation" => {
-            //     Value::Str(
-            //         json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<String>().unwrap()
-            //     )
-            // },
-            _ => {
-                Expression::Aggregate
+
+        // match json_i.as_object().unwrap().get("type").unwrap().as_string().unwrap() {
+        //     "Immediate" => {
+        //         Expression::Immediate {
+        //             value: Value::from_json(json_i.as_object().unwrap().get("value").unwrap().clone())
+        //         }
+        //     },
+        //     "Reference" => {
+        //         Expression::Reference {
+        //             attribute: json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<usize>().unwrap()
+        //         }
+        //     },
+        //     "Aggregate" => {
+        //         Expression::Aggregate
+        //     },
+        //     "Parameter" => {
+        //         Expression::Parameter {
+        //             predicate: json_i.as_object().unwrap().get("predicate").unwrap().as_string().unwrap().parse::<usize>().unwrap(),
+        //             parameter: json_i.as_object().unwrap().get("parameter").unwrap().as_string().unwrap().parse::<usize>().unwrap()
+        //         }
+        //     },
+        //     _ => {
+        //         Expression::Aggregate
+        //     }
+        // }
+        if (json_i.as_object().unwrap().contains_key("Immediate")){
+            Expression::Immediate {
+                value: Value::from_json(json_i.as_object().unwrap().get("value").unwrap().clone())
             }
+        } else if (json_i.as_object().unwrap().contains_key("Reference")) {
+            Expression::Reference {
+                attribute: (json_i.as_object().unwrap().get("Reference").unwrap()
+                                 .as_object().unwrap().get("attribute").unwrap()
+                                 .as_u64().unwrap() as usize)
+            }
+        } else {
+            Expression::Reference {
+                attribute: (json_i.as_object().unwrap().get("Reference").unwrap()
+                                 .as_object().unwrap().get("attribute").unwrap()
+                                 .as_u64().unwrap() as usize)
         }
+    }
     }
 }
 
 impl JsonConversion for TupleType {
     fn from_json(json_i : Json) -> Self {
         println!("TupleType::from_json: {:?}", json_i);
-        match json_i.as_object().unwrap().get("TupleType").unwrap().as_string().unwrap() {
+        // match json_i.as_object().unwrap().get("TupleType").unwrap().as_string().unwrap() {
+        match json_i.as_string().unwrap() {
             "Static" => {TupleType::Static},
             "Event" => {TupleType::Event},
             _ => {TupleType::Static}
@@ -207,9 +212,24 @@ impl JsonConversion for TupleDeclaration {
             attributes.push(AttributeDeclaration::from_json(attribute.clone()));
         }
 
+
+        // println!("------------------------------------- a1");
+        // let x1 = TupleType::from_json(json_i.as_object().unwrap().get("ty").unwrap().clone());
+        // println!("------------------------------------- a2");
+        // println!("=== {:?}", json_i.as_object().unwrap().get("id").unwrap().as_u64().unwrap());
+        // let x2 = json_i.as_object().unwrap().get("id").unwrap().as_string().unwrap().parse::<usize>().unwrap().clone();
+        // println!("------------------------------------- a3");
+        // let x3 = String::from(json_i.as_object().unwrap().get("name").unwrap().as_string().unwrap());
+        // println!("------------------------------------- a4");
+        // let x4 = attributes.clone();
+
+
+
+
         TupleDeclaration {
             ty: TupleType::from_json(json_i.as_object().unwrap().get("ty").unwrap().clone()),
-            id: json_i.as_object().unwrap().get("id").unwrap().as_string().unwrap().parse::<usize>().unwrap(),
+            // id: json_i.as_object().unwrap().get("id").unwrap().as_string().unwrap().parse::<usize>().unwrap(),
+            id: (json_i.as_object().unwrap().get("id").unwrap().as_u64().unwrap() as usize),
             name: String::from(json_i.as_object().unwrap().get("name").unwrap().as_string().unwrap()),
             attributes: attributes,
         }
@@ -387,39 +407,79 @@ impl JsonConversion for PredicateType {
     fn from_json(json_i : Json) -> Self {
         println!("PredicateType::from_json: {:?}", json_i);
 
-        match json_i.as_object().unwrap().get("type").unwrap().as_string().unwrap() {
-            "Trigger" => {
-                let mut parameters : Vec<ParameterDeclaration> = Vec::new();
+        // match json_i.as_object().unwrap().get("type").unwrap().as_string().unwrap() {
+        //     "Trigger" => {
+        //         let mut parameters : Vec<ParameterDeclaration> = Vec::new();
+        //
+        //         for parameter in json_i.as_object().unwrap().get("parameters").unwrap().as_array().unwrap().iter() {
+        //             parameters.push(ParameterDeclaration::from_json(parameter.clone()));
+        //         }
+        //
+        //         PredicateType::Trigger { parameters: parameters }
+        //     },
+        //     "Event" => {
+        //         let mut parameters : Vec<ParameterDeclaration> = Vec::new();
+        //
+        //         for parameter in json_i.as_object().unwrap().get("parameters").unwrap().as_array().unwrap().iter() {
+        //             parameters.push(ParameterDeclaration::from_json(parameter.clone()));
+        //         }
+        //
+        //         PredicateType::Event {
+        //             selection: EventSelection::Each, //TODO: replace this
+        //             parameters: parameters,
+        //             timing: Timing { upper: (1 as usize), bound: TimingBound::Between {lower: (1 as usize)}},//TODO: replace this
+        //         }
+        //     },
+        //     _ => {
+        //         let mut parameters : Vec<ParameterDeclaration> = Vec::new();
+        //
+        //         for parameter in json_i.as_object().unwrap().get("parameters").unwrap().as_array().unwrap().iter() {
+        //             parameters.push(ParameterDeclaration::from_json(parameter.clone()));
+        //         }
+        //
+        //         PredicateType::Trigger { parameters: parameters }
+        //     },
+        // }
 
-                for parameter in json_i.as_object().unwrap().get("parameters").unwrap().as_array().unwrap().iter() {
-                    parameters.push(ParameterDeclaration::from_json(parameter.clone()));
-                }
+        if (json_i.as_object().unwrap().contains_key("Trigger")){
+            let mut parameters : Vec<ParameterDeclaration> = Vec::new();
 
-                PredicateType::Trigger { parameters: parameters }
-            },
-            "Event" => {
-                let mut parameters : Vec<ParameterDeclaration> = Vec::new();
+            for parameter in json_i.as_object().unwrap().get("Trigger").unwrap()
+                                   .as_object().unwrap().get("parameters").unwrap()
+                                   .as_array().unwrap().iter() {
+                parameters.push(ParameterDeclaration::from_json(parameter.clone()));
+            }
 
-                for parameter in json_i.as_object().unwrap().get("parameters").unwrap().as_array().unwrap().iter() {
-                    parameters.push(ParameterDeclaration::from_json(parameter.clone()));
-                }
+            PredicateType::Trigger { parameters: parameters }
+        } else if (json_i.as_object().unwrap().contains_key("Event")) {
+            let mut parameters : Vec<ParameterDeclaration> = Vec::new();
 
-                PredicateType::Event {
-                    selection: EventSelection::Each, //TODO: replace this
-                    parameters: parameters,
-                    timing: Timing { upper: (1 as usize), bound: TimingBound::Between {lower: (1 as usize)}},//TODO: replace this
-                }
-            },
-            _ => {
-                let mut parameters : Vec<ParameterDeclaration> = Vec::new();
+            for parameter in json_i.as_object().unwrap().get("Event").unwrap()
+                                   .as_object().unwrap().get("parameters").unwrap()
+                                   .as_array().unwrap().iter() {
+                parameters.push(ParameterDeclaration::from_json(parameter.clone()));
+            }
 
-                for parameter in json_i.as_object().unwrap().get("parameters").unwrap().as_array().unwrap().iter() {
-                    parameters.push(ParameterDeclaration::from_json(parameter.clone()));
-                }
-
-                PredicateType::Trigger { parameters: parameters }
-            },
+            PredicateType::Event {
+                selection: EventSelection::Each, //TODO: replace this
+                parameters: parameters,
+                timing: Timing { upper: (1 as usize), bound: TimingBound::Between {lower: (1 as usize)}},//TODO: replace this
+            }
         }
+
+
+        else {
+            let mut parameters : Vec<ParameterDeclaration> = Vec::new();
+
+            for parameter in json_i.as_object().unwrap().get("parameters").unwrap().as_array().unwrap().iter() {
+                parameters.push(ParameterDeclaration::from_json(parameter.clone()));
+            }
+
+            PredicateType::Trigger { parameters: parameters }
+        }
+
+
+
     }
 }
 

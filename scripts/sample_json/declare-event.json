@@ -4,7 +4,6 @@
     "name": "smoke",
     "attributes": [
       {
-        "type": "AttributeDeclaration",
         "name":"area",
         "ty": "Str"
       }

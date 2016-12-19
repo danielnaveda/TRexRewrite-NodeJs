@@ -1,10 +1,44 @@
 {
-    "tuple": {
-        "ty_id": "1",
-        "data": [
-            "area_2",
-            "50"
-        ]
-    },
-    "time": "2016-12-12T09:51:03.570254485Z"
+  "predicates": [
+    {
+      "ty": {
+        "Trigger": {
+          "parameters": [
+            {
+              "name": "xafsasfasf",
+              "expression": {
+                "Reference": {
+                  "attribute": 0
+                }
+              }
+            }
+          ]
+        }
+      },
+      "tuple": {
+        "ty_id": 0,
+        "constraints": [],
+        "alias": "smasfasfasfasfk"
+      }
+    }
+  ],
+  "filters": [],
+  "event_template": {
+    "ty_id": 2,
+    "attributes": [
+      {
+        "Parameter": {
+          "predicate": 0,
+          "parameter": 0
+        }
+      },
+      {
+        "Parameter": {
+          "predicate": 1,
+          "parameter": 0
+        }
+      }
+    ]
+  },
+  "consuming": []
 }
