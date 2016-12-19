@@ -27,7 +27,7 @@ pub trait JsonConversion {
 
 impl JsonConversion for Event {
     fn from_json(json_i : Json) -> Self {
-        println!("Event::from_json: {:?}", json_i);
+        println!("Event::from_json: {:?}\n", json_i);
         let obj_event = json_i.as_object().unwrap();//BTreeMap<String, Json>
         let tuple = obj_event.get("tuple").unwrap();//Json
         let obj_tuple = tuple.as_object().unwrap();//BTreeMap<String, Json>
@@ -58,7 +58,7 @@ impl JsonConversion for Event {
 
 impl JsonConversion for BasicType {
     fn from_json(json_i : Json) -> Self {
-        println!("BasicType::from_json: {:?}", json_i);
+        println!("BasicType::from_json: {:?}\n", json_i);
         // match json_i.as_object().unwrap().get("BasicType").unwrap().as_string().unwrap() {
         match json_i.as_string().unwrap() {
             "Int" => {BasicType::Int},
@@ -72,7 +72,7 @@ impl JsonConversion for BasicType {
 
 impl JsonConversion for Value {
     fn from_json(json_i : Json) -> Self {
-        println!("Value::from_json: {:?}", json_i);
+        println!("Value::from_json: {:?}\n", json_i);
         match json_i.as_object().unwrap().get("type").unwrap().as_string().unwrap() {
             "Int" => {
                 Value::Int(
@@ -105,7 +105,7 @@ impl JsonConversion for Value {
 
 impl JsonConversion for UnaryOperator {
     fn from_json(json_i : Json) -> Self {
-        println!("UnaryOperator::from_json: {:?}", json_i);
+        println!("UnaryOperator::from_json: {:?}\n", json_i);
         match json_i.as_object().unwrap().get("UnaryOperator").unwrap().as_string().unwrap() {
             "Minus" => {UnaryOperator::Minus},
             "Not" => {UnaryOperator::Not},
@@ -116,7 +116,7 @@ impl JsonConversion for UnaryOperator {
 
 impl JsonConversion for BinaryOperator {
     fn from_json(json_i : Json) -> Self {
-        println!("BinaryOperator::from_json: {:?}", json_i);
+        println!("BinaryOperator::from_json: {:?}\n", json_i);
         match json_i.as_object().unwrap().get("BinaryOperator").unwrap().as_string().unwrap() {
             "Plus" => {BinaryOperator::Plus},
             "Minus" => {BinaryOperator::Minus},
@@ -135,7 +135,7 @@ impl JsonConversion for BinaryOperator {
 
 impl JsonConversion for Expression {
     fn from_json(json_i : Json) -> Self {
-        println!("Expression::from_json: {:?}", json_i);
+        println!("Expression::from_json: {:?}\n", json_i);
 
         // match json_i.as_object().unwrap().get("type").unwrap().as_string().unwrap() {
         //     "Immediate" => {
@@ -171,6 +171,25 @@ impl JsonConversion for Expression {
                                  .as_object().unwrap().get("attribute").unwrap()
                                  .as_u64().unwrap() as usize)
             }
+        } else if (json_i.as_object().unwrap().contains_key("Parameter")) {
+            Expression::Parameter {
+                predicate: (json_i.as_object().unwrap().get("Parameter").unwrap()
+                                 .as_object().unwrap().get("predicate").unwrap()
+                                 .as_u64().unwrap() as usize),
+                parameter: (json_i.as_object().unwrap().get("Parameter").unwrap()
+                                  .as_object().unwrap().get("parameter").unwrap()
+                                  .as_u64().unwrap() as usize)
+            }
+        } else if (json_i.as_object().unwrap().contains_key("BinaryOperation")) {
+            Expression::BinaryOperation {
+                operator: BinaryOperator::GreaterThan,
+                left: Box::new(Expression::Reference {
+                    attribute: 1,
+                }),
+                right: Box::new(Expression::Immediate {
+                    value: Value::Int(45),
+                }),
+            }
         } else {
             Expression::Reference {
                 attribute: (json_i.as_object().unwrap().get("Reference").unwrap()
@@ -183,7 +202,7 @@ impl JsonConversion for Expression {
 
 impl JsonConversion for TupleType {
     fn from_json(json_i : Json) -> Self {
-        println!("TupleType::from_json: {:?}", json_i);
+        println!("TupleType::from_json: {:?}\n", json_i);
         // match json_i.as_object().unwrap().get("TupleType").unwrap().as_string().unwrap() {
         match json_i.as_string().unwrap() {
             "Static" => {TupleType::Static},
@@ -195,7 +214,7 @@ impl JsonConversion for TupleType {
 
 impl JsonConversion for AttributeDeclaration {
     fn from_json(json_i : Json) -> Self {
-        println!("AttributeDeclaration::from_json: {:?}", json_i);
+        println!("AttributeDeclaration::from_json: {:?}\n", json_i);
         AttributeDeclaration {
             name: String::from(json_i.as_object().unwrap().get("name").unwrap().as_string().unwrap()),
             ty: BasicType::from_json(json_i.as_object().unwrap().get("ty").unwrap().clone()),
@@ -205,7 +224,7 @@ impl JsonConversion for AttributeDeclaration {
 
 impl JsonConversion for TupleDeclaration {
     fn from_json(json_i : Json) -> Self {
-        println!("TupleDeclaration::from_json: {:?}", json_i);
+        println!("TupleDeclaration::from_json: {:?}\n", json_i);
         let mut attributes: Vec<AttributeDeclaration> = Vec::new();
 
         for attribute in json_i.as_object().unwrap().get("attributes").unwrap().as_array().unwrap().iter(){
@@ -238,16 +257,21 @@ impl JsonConversion for TupleDeclaration {
 
 impl JsonConversion for EventTemplate {
     fn from_json(json_i : Json) -> Self {
-        println!("EventTemplate::from_json: {:?}", json_i);
+        println!("EventTemplate::from_json: {:?}\n", json_i);
 
         let mut expressions : Vec<Expression> = Vec::new();
 
         for expression in json_i.as_object().unwrap().get("attributes").unwrap().as_array().unwrap().iter() {
             expressions.push(Expression::from_json(expression.clone()));
         }
-
+// println!("AAAAAAAAAAAAAAAAAAAAAAAAAa");
+// let asfsaf = (json_i.as_object().unwrap().get("ty_id").unwrap()
+//                .as_u64().unwrap().clone() as usize);
+// println!("AAAAAAAAAAAAAAAAAAAAAAAAAa {:?}", asfsaf);
         EventTemplate {
-            ty_id : json_i.as_object().unwrap().get("ty_id").unwrap().as_string().unwrap().parse::<usize>().unwrap(),
+            // ty_id : json_i.as_object().unwrap().get("ty_id").unwrap().as_string().unwrap().parse::<usize>().unwrap(),
+            ty_id : (json_i.as_object().unwrap().get("ty_id").unwrap()
+                           .as_u64().unwrap().clone() as usize),
             attributes: expressions
         }
     }
@@ -255,7 +279,7 @@ impl JsonConversion for EventTemplate {
 
 impl JsonConversion for Rule {
     fn from_json(json_i : Json) -> Self {
-        println!("Rule::from_json: {:?}", json_i);
+        println!("Rule::from_json: {:?}\n", json_i);
 
         let mut predicates : Vec<Predicate> = Vec::new();
         let mut filters : Vec<Arc<Expression>> = Vec::new();
@@ -273,6 +297,9 @@ impl JsonConversion for Rule {
             consumings.push(consuming.as_string().unwrap().parse::<usize>().unwrap().clone());
         }
 
+        // println!("wwwwwwwwwwwwwwwwwwwwwwwwww" );
+        // let asfas = EventTemplate::from_json(json_i.as_object().unwrap().get("event_template").unwrap().clone());
+        // println!("asfasfas = {:?}", asfas);
 
         Rule {
             predicates: predicates,
@@ -285,7 +312,7 @@ impl JsonConversion for Rule {
 
 impl JsonConversion for Tuple {
     fn from_json(json_i : Json) -> Self {
-        println!("Tuple::from_json: {:?}", json_i);
+        println!("Tuple::from_json: {:?}\n", json_i);
 
         let mut values : Vec<Value> = Vec::new();
 
@@ -302,8 +329,9 @@ impl JsonConversion for Tuple {
 
 impl JsonConversion for EventSelection {
     fn from_json(json_i : Json) -> Self {
-        println!("EventSelection::from_json: {:?}", json_i);
-        match json_i.as_object().unwrap().get("EventSelection").unwrap().as_string().unwrap() {
+        println!("EventSelection::from_json: {:?}\n", json_i);
+        // match json_i.as_object().unwrap().get("EventSelection").unwrap().as_string().unwrap() {
+        match json_i.as_string().unwrap() {
             "Each" => {EventSelection::Each},
             "First" => {EventSelection::First},
             "Last" => {EventSelection::Last},
@@ -314,7 +342,7 @@ impl JsonConversion for EventSelection {
 
 impl JsonConversion for Aggregator {
     fn from_json(json_i : Json) -> Self {
-        println!("Aggregator::from_json: {:?}", json_i);
+        println!("Aggregator::from_json: {:?}\n", json_i);
         match json_i.as_object().unwrap().get("Aggregator").unwrap().as_string().unwrap() {
             "Avg" => {
                 Aggregator::Avg(
@@ -347,7 +375,7 @@ impl JsonConversion for Aggregator {
 
 impl JsonConversion for ParameterDeclaration {
     fn from_json(json_i : Json) -> Self {
-        println!("ParameterDeclaration::from_json: {:?}", json_i);
+        println!("ParameterDeclaration::from_json: {:?}\n", json_i);
         ParameterDeclaration {
             name: String::from(json_i.as_object().unwrap().get("name").unwrap().as_string().unwrap()),
             expression: Arc::new(Expression::from_json(json_i.as_object().unwrap().get("expression").unwrap().clone())),
@@ -357,7 +385,7 @@ impl JsonConversion for ParameterDeclaration {
 
 impl JsonConversion for TimingBound {
     fn from_json(json_i : Json) -> Self {
-        println!("TimingBound::from_json: {:?}", json_i);
+        println!("TimingBound::from_json: {:?}\n", json_i);
         match json_i.as_object().unwrap().get("type").unwrap().as_string().unwrap() {
             "Within" => {
                 TimingBound::Within { window: Duration::seconds(json_i.as_object().unwrap().get("lower").unwrap().as_string().unwrap().parse::<i64>().unwrap()) }
@@ -374,7 +402,7 @@ impl JsonConversion for TimingBound {
 
 impl JsonConversion for Timing {
     fn from_json(json_i : Json) -> Self {
-        println!("Timing::from_json: {:?}", json_i);
+        println!("Timing::from_json: {:?}\n", json_i);
         Timing {
             upper: json_i.as_object().unwrap().get("upper").unwrap().as_string().unwrap().parse::<usize>().unwrap(),
             bound: TimingBound::from_json(json_i.as_object().unwrap().get("bound").unwrap().clone()),
@@ -384,7 +412,7 @@ impl JsonConversion for Timing {
 
 impl JsonConversion for Order {
     fn from_json(json_i : Json) -> Self {
-        println!("Order::from_json: {:?}", json_i);
+        println!("Order::from_json: {:?}\n", json_i);
         match json_i.as_object().unwrap().get("Order").unwrap().as_string().unwrap() {
             "Asc" => {Order::Asc},
             "Desc" => {Order::Desc},
@@ -395,7 +423,7 @@ impl JsonConversion for Order {
 
 impl JsonConversion for Ordering {
     fn from_json(json_i : Json) -> Self {
-        println!("Ordering::from_json: {:?}", json_i);
+        println!("Ordering::from_json: {:?}\n", json_i);
         Ordering {
             attribute: json_i.as_object().unwrap().get("attribute").unwrap().as_string().unwrap().parse::<usize>().unwrap(),
             direction: Order::from_json(json_i.as_object().unwrap().get("order").unwrap().clone()),
@@ -405,41 +433,7 @@ impl JsonConversion for Ordering {
 
 impl JsonConversion for PredicateType {
     fn from_json(json_i : Json) -> Self {
-        println!("PredicateType::from_json: {:?}", json_i);
-
-        // match json_i.as_object().unwrap().get("type").unwrap().as_string().unwrap() {
-        //     "Trigger" => {
-        //         let mut parameters : Vec<ParameterDeclaration> = Vec::new();
-        //
-        //         for parameter in json_i.as_object().unwrap().get("parameters").unwrap().as_array().unwrap().iter() {
-        //             parameters.push(ParameterDeclaration::from_json(parameter.clone()));
-        //         }
-        //
-        //         PredicateType::Trigger { parameters: parameters }
-        //     },
-        //     "Event" => {
-        //         let mut parameters : Vec<ParameterDeclaration> = Vec::new();
-        //
-        //         for parameter in json_i.as_object().unwrap().get("parameters").unwrap().as_array().unwrap().iter() {
-        //             parameters.push(ParameterDeclaration::from_json(parameter.clone()));
-        //         }
-        //
-        //         PredicateType::Event {
-        //             selection: EventSelection::Each, //TODO: replace this
-        //             parameters: parameters,
-        //             timing: Timing { upper: (1 as usize), bound: TimingBound::Between {lower: (1 as usize)}},//TODO: replace this
-        //         }
-        //     },
-        //     _ => {
-        //         let mut parameters : Vec<ParameterDeclaration> = Vec::new();
-        //
-        //         for parameter in json_i.as_object().unwrap().get("parameters").unwrap().as_array().unwrap().iter() {
-        //             parameters.push(ParameterDeclaration::from_json(parameter.clone()));
-        //         }
-        //
-        //         PredicateType::Trigger { parameters: parameters }
-        //     },
-        // }
+        println!("PredicateType::from_json: {:?}\n", json_i);
 
         if (json_i.as_object().unwrap().contains_key("Trigger")){
             let mut parameters : Vec<ParameterDeclaration> = Vec::new();
@@ -460,15 +454,54 @@ impl JsonConversion for PredicateType {
                 parameters.push(ParameterDeclaration::from_json(parameter.clone()));
             }
 
+
+            let bound_temp : TimingBound;
+            if (json_i.as_object().unwrap().get("Event").unwrap()
+                  .as_object().unwrap().get("timing").unwrap()
+                  .as_object().unwrap().get("bound").unwrap()
+                  .as_object().unwrap().contains_key("Between")){
+                      bound_temp = TimingBound::Between {
+                          lower: (
+                              json_i.as_object().unwrap().get("Event").unwrap()
+                                    .as_object().unwrap().get("timing").unwrap()
+                                    .as_object().unwrap().get("bound").unwrap()
+                                    .as_object().unwrap().get("Between").unwrap()
+                                    .as_object().unwrap().get("lower").unwrap()
+                                    .as_u64().unwrap()
+                                    as usize)
+                      };
+                  } else {
+                      bound_temp = TimingBound::Within {
+                          window: Duration::minutes(
+                              json_i.as_object().unwrap().get("Event").unwrap()
+                                    .as_object().unwrap().get("timing").unwrap()
+                                    .as_object().unwrap().get("bound").unwrap()
+                                    .as_object().unwrap().get("Within").unwrap()
+                                    .as_object().unwrap().get("window").unwrap()
+                                    .as_u64().unwrap()
+                                    as i64)
+                      };
+                  }
+
+
+
+
+
             PredicateType::Event {
-                selection: EventSelection::Each, //TODO: replace this
+                selection: EventSelection::from_json(json_i.as_object().unwrap().get("Event").unwrap()
+                                       .as_object().unwrap().get("selection").unwrap().clone()),
                 parameters: parameters,
-                timing: Timing { upper: (1 as usize), bound: TimingBound::Between {lower: (1 as usize)}},//TODO: replace this
+                timing: Timing {
+                    upper: (
+                        json_i.as_object().unwrap().get("Event").unwrap()
+                              .as_object().unwrap().get("timing").unwrap()
+                              .as_object().unwrap().get("upper").unwrap()
+                              .as_u64().unwrap()
+                              as usize),
+                    bound: bound_temp
+                }
             }
-        }
-
-
-        else {
+        } else {
             let mut parameters : Vec<ParameterDeclaration> = Vec::new();
 
             for parameter in json_i.as_object().unwrap().get("parameters").unwrap().as_array().unwrap().iter() {
@@ -477,15 +510,12 @@ impl JsonConversion for PredicateType {
 
             PredicateType::Trigger { parameters: parameters }
         }
-
-
-
     }
 }
 
 impl JsonConversion for ConstrainedTuple {
     fn from_json(json_i : Json) -> Self {
-        println!("ConstrainedTuple::from_json: {:?}", json_i);
+        println!("ConstrainedTuple::from_json: {:?}\n", json_i);
 
         let mut expressions : Vec<Arc<Expression>> = Vec::new();
 
@@ -494,7 +524,8 @@ impl JsonConversion for ConstrainedTuple {
         }
 
         ConstrainedTuple {
-            ty_id: json_i.as_object().unwrap().get("ty_id").unwrap().as_string().unwrap().parse::<usize>().unwrap().clone(),
+            // ty_id: json_i.as_object().unwrap().get("ty_id").unwrap().as_string().unwrap().parse::<usize>().unwrap().clone(),
+            ty_id: (json_i.as_object().unwrap().get("ty_id").unwrap().as_u64().unwrap() as usize),
             constraints: expressions,
             alias: String::from(json_i.as_object().unwrap().get("alias").unwrap().as_string().unwrap()),
         }
@@ -503,7 +534,7 @@ impl JsonConversion for ConstrainedTuple {
 
 impl JsonConversion for Predicate {
     fn from_json(json_i : Json) -> Self {
-        println!("Predicate::from_json: {:?}", json_i);
+        println!("Predicate::from_json: {:?}\n", json_i);
         Predicate {
             ty: PredicateType::from_json(json_i.as_object().unwrap().get("ty").unwrap().clone()),
             tuple: ConstrainedTuple::from_json(json_i.as_object().unwrap().get("tuple").unwrap().clone()),

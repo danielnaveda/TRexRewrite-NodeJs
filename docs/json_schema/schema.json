@@ -408,11 +408,11 @@
             "title": "TimingBound",
             "oneOf": [{
                 "Within": {
-                    "type": "string"
+                    "window": {"type": "integer"}
                 }
             }, {
                 "Between": {
-                    "type": "integer",
+                    "lower": {"type": "integer"},
                     "minimum": 0
                 }
             }]

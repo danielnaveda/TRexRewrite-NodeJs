@@ -5,7 +5,7 @@
         "Trigger": {
           "parameters": [
             {
-              "name": "xafsasfasf",
+              "name": "x",
               "expression": {
                 "Reference": {
                   "attribute": 0
@@ -18,7 +18,63 @@
       "tuple": {
         "ty_id": 0,
         "constraints": [],
-        "alias": "smasfasfasfasfk"
+        "alias": "smk"
+      }
+    },
+    {
+      "ty": {
+        "Event": {
+          "selection": "Last",
+          "parameters": [],
+          "timing": {
+            "upper": 0,
+            "bound": {
+              "Within": {
+                "window": 5
+              }
+            }
+          }
+        }
+      },
+      "tuple": {
+        "ty_id": 1,
+        "constraints": [
+          {
+            "BinaryOperation": {
+              "operator": "Equal",
+              "left": {
+                "Reference": {
+                  "attribute": 0
+                }
+              },
+              "right": {
+                "Parameter": {
+                  "predicate": 45,
+                  "parameter": 0
+                }
+              }
+            }
+          },
+          {
+            "BinaryOperation": {
+              "operator": "GreaterThan",
+              "left": {
+                "Reference": {
+                  "attribute": 1
+                }
+              },
+              "right": {
+                "Immediate": {
+                  "value": {
+                    "type": "Int",
+                    "value": "45"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "alias": "temp"
       }
     }
   ],

@@ -206,6 +206,7 @@ pub fn define_rule(rule: Json){
     let mut engine = s.inner.lock().unwrap();
 
     let rule_struct = Rule::from_json(rule);
+    println!("Rust::defineRule::rule_struct: {:?}\n",rule_struct);
     engine.define(rule_struct);
 }
 
