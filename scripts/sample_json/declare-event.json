@@ -1,0 +1,12 @@
+{
+    "ty": "Event",
+    "id": 0,
+    "name": "smoke",
+    "attributes": [
+      {
+        "type": "AttributeDeclaration",
+        "name":"area",
+        "ty": "Str"
+      }
+    ]
+}

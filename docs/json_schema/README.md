@@ -42,41 +42,7 @@ This will be later formalized through the JSON schema
 <!-- TODO: finish the Rule definition -->
 ### Define Rule
 ```json
-{
-  "predicates" : [
-    {
-      "ty" : "Trigger",
-      "content" : {
-        "parameters" : [
-          {
-            "name" : "",
-            "expression" : ""
-          },
-          /*...*/
-        ]
-      }
-      "tuple" : {
-        "ty_id" : 0,
-        "constraints" : [],
-        "alias" : "smk"
-      }
-    },
-    /*...*/
-  ],
-  "filters" : [],
-  "event_template" : {
-    "ty_id" : "2",
-    "attributes" : [
-      {
-        "type" : "parameter",
-        "predicate": 0,
-        "parameter" : 0
-      },
-      /*...*/
-    ]
-  },
-  "consuming" : []
-}
+TODO
 ```
 
 ## Server->Client
