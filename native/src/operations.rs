@@ -109,7 +109,88 @@ pub fn init_examples(){
     // `from smoke[$x = area]() as smk
     //  and last temperature[$y = value](area == $x, value > 45) as temp within 5min from smk
     //  emit fire(area = $x, temp = $y)`
-    engine.define(Rule {
+    // engine.define(Rule {
+    //     predicates: vec![
+    //         Predicate {
+    //             ty: PredicateType::Trigger {
+    //                 parameters: vec![
+    //                     ParameterDeclaration {
+    //                         name: "x".to_owned(),
+    //                         expression: Arc::new(Expression::Reference {
+    //                             attribute: 0,
+    //                         }),
+    //                     },
+    //                 ],
+    //             },
+    //             tuple: ConstrainedTuple {
+    //                 ty_id: 0,
+    //                 constraints: vec![],
+    //                 alias: "smk".to_owned(),
+    //             },
+    //         },
+    //         Predicate {
+    //             ty: PredicateType::Event {
+    //                 selection: EventSelection::Last,
+    //                 parameters: vec![
+    //                     ParameterDeclaration {
+    //                         name: "y".to_owned(),
+    //                         expression: Arc::new(Expression::Reference {
+    //                             attribute: 1,
+    //                         }),
+    //                     },
+    //                 ],
+    //                 timing: Timing {
+    //                     upper: 0,
+    //                     bound: TimingBound::Within {
+    //                         window: Duration::minutes(5),
+    //                     },
+    //                 },
+    //             },
+    //             tuple: ConstrainedTuple {
+    //                 ty_id: 1,
+    //                 constraints: vec![
+    //                     Arc::new(Expression::BinaryOperation {
+    //                         operator: BinaryOperator::Equal,
+    //                         left: Box::new(Expression::Reference {
+    //                             attribute: 0,
+    //                         }),
+    //                         right: Box::new(Expression::Parameter {
+    //                             predicate: 0,
+    //                             parameter: 0,
+    //                         }),
+    //                     }),
+    //                     Arc::new(Expression::BinaryOperation {
+    //                         operator: BinaryOperator::GreaterThan,
+    //                         left: Box::new(Expression::Reference {
+    //                             attribute: 1,
+    //                         }),
+    //                         right: Box::new(Expression::Immediate {
+    //                             value: Value::Int(45),
+    //                         }),
+    //                     }),
+    //                 ],
+    //                 alias: "temp".to_owned(),
+    //             },
+    //         },
+    //     ],
+    //     filters: vec![],
+    //     event_template: EventTemplate {
+    //         ty_id: 2,
+    //         attributes: vec![
+    //             Expression::Parameter {
+    //                 predicate: 0,
+    //                 parameter: 0,
+    //             },
+    //             Expression::Parameter {
+    //                 predicate: 1,
+    //                 parameter: 0,
+    //             },
+    //         ],
+    //     },
+    //     consuming: vec![],
+    // });
+
+    let rule1 = Rule {
         predicates: vec![
             Predicate {
                 ty: PredicateType::Trigger {
@@ -188,7 +269,9 @@ pub fn init_examples(){
             ],
         },
         consuming: vec![],
-    });
+    };
+
+    println!("\nrule1 {:?}\n", rule1);
 }
 
 pub fn declare_event(event: Json){

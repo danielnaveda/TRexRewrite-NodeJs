@@ -25,7 +25,16 @@
       "ty": {
         "Event": {
           "selection": "Last",
-          "parameters": [],
+          "parameters": [
+            {
+              "name": "y",
+              "expression": {
+                "Reference": {
+                  "attribute": 1
+                }
+              }
+            }
+          ],
           "timing": {
             "upper": 0,
             "bound": {
