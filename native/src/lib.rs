@@ -25,13 +25,17 @@ pub mod conn_queues;
 pub mod operations;
 pub mod json_conversions;
 
-use operations::{init_examples,declare_event, define_rule, subscribe, unsubscribe, publish, unknown_publish, get_notification, status};
+use operations::{init_examples,declare_event, define_rule, subscribe, unsubscribe, publish, unknown_publish, get_notification, status, get_connection};
 use conn_queues::write_status;
 
 fn w_get_connection(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
     let uuid = Uuid::new_v4();
     println!("Rust::getConnection: {}", uuid);
+
+    get_connection(uuid);
+
+    write_status();
 
     Ok(JsString::new(scope, &format!("{{\"result\" : \"ok\", \"value\" : \"{}\"}}",&(uuid.to_hyphenated_string())[..])[..]).unwrap())
 }
@@ -169,7 +173,10 @@ fn w_define_rule(call: Call) -> JsResult<JsString> {
 
 fn w_subscribe(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
-    let subs_return = subscribe() as i32;
+    let conn_id = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
+    let event_type = try!(try!(call.arguments.require(scope, 1)).check::<JsInteger>()).value() as usize;
+
+    let subs_return = subscribe(conn_id, event_type) as i32;
 
     write_status();
     Ok(JsString::new(scope, &format!("{{\"result\" : \"ok\", \"value\" : {}}}",subs_return)[..]).unwrap())
@@ -221,8 +228,10 @@ fn w_unknown_publish(call: Call) -> JsResult<JsString> {
 
 fn w_get_notification(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
-    let conn_id = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
-    let result = get_notification(conn_id as usize);
+    // let conn_id = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
+    let conn_id = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
+    // let result = get_notification(conn_id as usize);
+    let result = get_notification(conn_id);
 
     write_status();
     match result {

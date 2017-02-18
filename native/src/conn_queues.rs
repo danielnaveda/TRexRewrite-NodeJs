@@ -8,7 +8,8 @@ use std::{mem};
 use tesla::Event;
 
 #[derive(Clone)]
-struct SingletonQueues { inner: Arc<Mutex<HashMap<usize, Vec<Arc<Event>>>>>}
+// struct SingletonQueues { inner: Arc<Mutex<HashMap<usize, Vec<Arc<Event>>>>>}
+struct SingletonQueues { inner: Arc<Mutex<HashMap<String, Vec<Arc<Event>>>>>}
 
 fn singletonqueues() -> SingletonQueues {
     static mut SINGLETON: *const SingletonQueues = 0 as *const SingletonQueues;
@@ -25,7 +26,8 @@ fn singletonqueues() -> SingletonQueues {
     }
 }
 
-pub fn insert_queue(connid: usize, event: Arc<Event>){
+// pub fn insert_queue(connid: usize, event: Arc<Event>){
+pub fn insert_queue(connid: String, event: Arc<Event>){
     let s = singletonqueues();
     let mut conn_queues = s.inner.lock().unwrap();
 
@@ -34,7 +36,8 @@ pub fn insert_queue(connid: usize, event: Arc<Event>){
     (*queue).insert(0,event);
 }
 
-pub fn pop_queue(connid: usize) -> Option<Arc<Event>> {
+// pub fn pop_queue(connid: usize) -> Option<Arc<Event>> {
+pub fn pop_queue(connid: String) -> Option<Arc<Event>> {
     let s = singletonqueues();
     let mut conn_queues = s.inner.lock().unwrap();
 
@@ -46,14 +49,16 @@ pub fn pop_queue(connid: usize) -> Option<Arc<Event>> {
     }
 }
 
-pub fn init_queue(connid: usize) -> Option<Arc<Event>> {
+// pub fn init_queue(connid: usize) -> Option<Arc<Event>> {
+pub fn init_queue(connid: String) -> Option<Arc<Event>> {
     let s = singletonqueues();
     let mut conn_queues = s.inner.lock().unwrap();
     let queue = conn_queues.entry(connid).or_insert(vec![]);
     (*queue).pop()
 }
 
-pub fn remove_queue(connid: usize){
+// pub fn remove_queue(connid: usize){
+pub fn remove_queue(connid: String){
     let s = singletonqueues();
     let mut conn_queues = s.inner.lock().unwrap();
     conn_queues.remove(&connid);

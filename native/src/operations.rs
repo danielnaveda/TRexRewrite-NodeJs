@@ -8,6 +8,9 @@ extern crate num_cpus;
 extern crate tesla;
 extern crate trex;
 
+extern crate uuid;
+use uuid::Uuid;
+
 use chrono::{Duration, UTC};
 use std::sync::Arc;
 use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Rule, Tuple, TupleDeclaration,TupleType};
@@ -47,7 +50,8 @@ fn singleton() -> SingletonReader {
 
 #[derive(Clone, Debug)]
 pub struct QueueListener{
-    conn_id: usize,
+    // conn_id: usize,
+    conn_id: String,
 }
 
 impl Listener for QueueListener {
@@ -55,6 +59,13 @@ impl Listener for QueueListener {
         insert_queue(self.conn_id.to_owned(), (*event).clone());
     }
 }
+
+pub fn get_connection(uuid: Uuid) {
+    // println!("operations::Rust::getConnection: {}", uuid);
+    init_queue(uuid.to_string());
+}
+
+
 
 pub fn init_examples(){
     println!("Rust::initialize()");
@@ -294,26 +305,31 @@ pub fn define_rule(rule: Json){
 }
 
 // pub fn subscribe(connID: String) -> usize {
-pub fn subscribe() -> usize {
+pub fn subscribe(connID: String, event_type: usize) -> usize {
     println!("Rust::subscribe(...)");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
 
-    let conn_id = engine.get_last_id() + (1 as usize);
+    // let conn_id = engine.get_last_id() + (1 as usize);
 
-    init_queue(conn_id);
+    // init_queue(conn_id);
 
-    engine.subscribe(Box::new(QueueListener{conn_id : conn_id}))
+    // engine.subscribe(Box::new(QueueListener{conn_id : conn_id}))
+
+    // event_type should be added to engine.subscribe()
+    // engine.subscribe(Box::new(QueueListener{conn_id : format!("{}", conn_id)}))
+    engine.subscribe(Box::new(QueueListener{conn_id : connID}))
 }
 
 pub fn unsubscribe(conn_id: usize){
+// pub fn unsubscribe(conn_id: String){
     println!("Rust::unsubscribe(...)");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
 
     engine.unsubscribe(&conn_id);
 
-    remove_queue(conn_id);
+    // remove_queue(conn_id);
 }
 
 pub fn publish(conn_id: usize ,event: Json){
@@ -359,7 +375,8 @@ pub fn unknown_publish(event: Json){
     // }));
 }
 
-pub fn get_notification(conn_id: usize) -> Option<Arc<Event>> {
+// pub fn get_notification(conn_id: usize) -> Option<Arc<Event>> {
+pub fn get_notification(conn_id: String) -> Option<Arc<Event>> {
     println!("Rust::get_notification(...)");
     pop_queue(conn_id)
 }
