@@ -32,7 +32,8 @@ fn w_get_connection(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
     let uuid = Uuid::new_v4();
     println!("Rust::getConnection: {}", uuid);
-    Ok(JsString::new(scope, &(uuid.to_hyphenated_string())[..]).unwrap())
+
+    Ok(JsString::new(scope, &format!("{{\"result\" : \"ok\", \"value\" : \"{}\"}}",&(uuid.to_hyphenated_string())[..])[..]).unwrap())
 }
 
 fn w_init_examples(call: Call) -> JsResult<JsString> {
