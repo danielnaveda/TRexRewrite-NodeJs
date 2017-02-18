@@ -184,9 +184,17 @@ fn w_subscribe(call: Call) -> JsResult<JsString> {
 
 fn w_unsubscribe(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
-    let conn_id = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
+    // let conn_id = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
+    let conn_id = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
+    let subs_id = try!(try!(call.arguments.require(scope, 1)).check::<JsInteger>()).value() as usize;
 
-    unsubscribe((conn_id as usize));
+
+    println!("{:?}", conn_id);
+    println!("{:?}", subs_id);
+
+    // unsubscribe((conn_id as usize));
+    unsubscribe(subs_id);
+
     write_status();
     // Ok(JsString::new(scope, "Ok").unwrap())
     Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
@@ -227,11 +235,13 @@ fn w_unknown_publish(call: Call) -> JsResult<JsString> {
 }
 
 fn w_get_notification(call: Call) -> JsResult<JsString> {
+    println!("Rust::w_get_notification(...)");
     let scope = call.scope;
     // let conn_id = try!(try!(call.arguments.require(scope, 0)).check::<JsInteger>()).value();
     let conn_id = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
     // let result = get_notification(conn_id as usize);
     let result = get_notification(conn_id);
+    println!("Rust::result {:?}",result);
 
     write_status();
     match result {
