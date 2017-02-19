@@ -20,15 +20,15 @@ tesla: expression IDENTIFIER '(' attributes ')' WITH_ID ID
             //System.out.println(key + " " + value);
             if (attributes_var != "")
               attributes_var = ',' + attributes_var;
-            attributes_var = key + ":" + value + attributes_var;
+            attributes_var = "\"" + key + "\"" + ":" + "\"" + value + "\"" + attributes_var;
   }
 
   System.out.println(
   "{"+
-    "'ty': 'Event',"+
-    "'id':"+$ID.text+","+
-    "'name': '"+$IDENTIFIER.text+"',"+
-    "'attributes': [{"+attributes_var+"}]"+
+    "\"ty\": \"Event\","+
+    "\"id\":"+$ID.text+","+
+    "\"name\": \""+$IDENTIFIER.text+"\","+
+    "\"attributes\": [{"+attributes_var+"}]"+
    "}"
   );
 }
