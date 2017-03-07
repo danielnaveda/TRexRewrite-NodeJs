@@ -1,25 +1,15 @@
-use tesla::{Listener};
-
 extern crate rustc_serialize;
-use rustc_serialize::json::Json;
-
 extern crate chrono;
 extern crate num_cpus;
 extern crate tesla;
 extern crate trex;
 
+use rustc_serialize::json::Json;
 use chrono::{Duration, UTC};
 use std::sync::Arc;
-use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Rule, Tuple, TupleDeclaration,TupleType};
+use tesla::{AttributeDeclaration, Event, EventTemplate, Rule, Tuple, TupleDeclaration,TupleType};
 use tesla::expressions::{BasicType, BinaryOperator, UnaryOperator, Expression, Value};
 use tesla::predicates::{ConstrainedTuple, EventSelection, ParameterDeclaration, Predicate,PredicateType, Timing, TimingBound, Order, Ordering, Aggregator};
-use trex::TRex;
-use trex::stack::StackProvider;
-
-use std::sync::{Mutex, Once, ONCE_INIT};
-use std::{mem};
-
-use conn_queues::{insert_queue, pop_queue, print_queue_status,remove_queue,init_queue};
 
 pub trait JsonConversion {
     fn from_json(json_i : Json) -> Self;
@@ -161,17 +151,17 @@ impl JsonConversion for Expression {
         //         Expression::Aggregate
         //     }
         // }
-        if (json_i.as_object().unwrap().contains_key("Immediate")){
+        if json_i.as_object().unwrap().contains_key("Immediate") {
             Expression::Immediate {
                 value: Value::from_json(json_i.as_object().unwrap().get("value").unwrap().clone())
             }
-        } else if (json_i.as_object().unwrap().contains_key("Reference")) {
+        } else if json_i.as_object().unwrap().contains_key("Reference") {
             Expression::Reference {
                 attribute: (json_i.as_object().unwrap().get("Reference").unwrap()
                                  .as_object().unwrap().get("attribute").unwrap()
                                  .as_u64().unwrap() as usize)
             }
-        } else if (json_i.as_object().unwrap().contains_key("Parameter")) {
+        } else if json_i.as_object().unwrap().contains_key("Parameter") {
             Expression::Parameter {
                 predicate: (json_i.as_object().unwrap().get("Parameter").unwrap()
                                  .as_object().unwrap().get("predicate").unwrap()
@@ -180,7 +170,7 @@ impl JsonConversion for Expression {
                                   .as_object().unwrap().get("parameter").unwrap()
                                   .as_u64().unwrap() as usize)
             }
-        } else if (json_i.as_object().unwrap().contains_key("BinaryOperation")) {
+        } else if json_i.as_object().unwrap().contains_key("BinaryOperation") {
             Expression::BinaryOperation {
                 operator: BinaryOperator::GreaterThan,
                 left: Box::new(Expression::Reference {
@@ -435,7 +425,7 @@ impl JsonConversion for PredicateType {
     fn from_json(json_i : Json) -> Self {
         println!("PredicateType::from_json: {:?}\n", json_i);
 
-        if (json_i.as_object().unwrap().contains_key("Trigger")){
+        if json_i.as_object().unwrap().contains_key("Trigger") {
             let mut parameters : Vec<ParameterDeclaration> = Vec::new();
 
             for parameter in json_i.as_object().unwrap().get("Trigger").unwrap()
@@ -445,7 +435,7 @@ impl JsonConversion for PredicateType {
             }
 
             PredicateType::Trigger { parameters: parameters }
-        } else if (json_i.as_object().unwrap().contains_key("Event")) {
+        } else if json_i.as_object().unwrap().contains_key("Event") {
             let mut parameters : Vec<ParameterDeclaration> = Vec::new();
 
             for parameter in json_i.as_object().unwrap().get("Event").unwrap()
@@ -456,10 +446,10 @@ impl JsonConversion for PredicateType {
 
 
             let bound_temp : TimingBound;
-            if (json_i.as_object().unwrap().get("Event").unwrap()
+            if json_i.as_object().unwrap().get("Event").unwrap()
                   .as_object().unwrap().get("timing").unwrap()
                   .as_object().unwrap().get("bound").unwrap()
-                  .as_object().unwrap().contains_key("Between")){
+                  .as_object().unwrap().contains_key("Between") {
                       bound_temp = TimingBound::Between {
                           lower: (
                               json_i.as_object().unwrap().get("Event").unwrap()

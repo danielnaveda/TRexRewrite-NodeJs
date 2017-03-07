@@ -8,7 +8,6 @@ use std::{mem};
 use tesla::Event;
 
 #[derive(Clone)]
-// struct SingletonQueues { inner: Arc<Mutex<HashMap<usize, Vec<Arc<Event>>>>>}
 struct SingletonQueues { inner: Arc<Mutex<HashMap<String, Vec<Arc<Event>>>>>}
 
 fn singletonqueues() -> SingletonQueues {

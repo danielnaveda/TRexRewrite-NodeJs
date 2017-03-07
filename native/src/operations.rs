@@ -1,30 +1,23 @@
-use tesla::{Listener};
-
 extern crate rustc_serialize;
-use rustc_serialize::json::Json;
-
 extern crate chrono;
 extern crate num_cpus;
 extern crate tesla;
 extern crate trex;
-
 extern crate uuid;
-use uuid::Uuid;
 
-use chrono::{Duration, UTC};
+use tesla::{Listener};
+use rustc_serialize::json::Json;
+use uuid::Uuid;
+use chrono::{Duration};
 use std::sync::Arc;
-use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Rule, Tuple, TupleDeclaration,TupleType};
+use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Rule, TupleDeclaration,TupleType};
 use tesla::expressions::{BasicType, BinaryOperator, Expression, Value};
 use tesla::predicates::{ConstrainedTuple, EventSelection, ParameterDeclaration, Predicate,PredicateType, Timing, TimingBound};
 use trex::TRex;
 use trex::stack::StackProvider;
-
 use std::sync::{Mutex, Once, ONCE_INIT};
 use std::{mem};
-
-use conn_queues::{insert_queue, pop_queue, print_queue_status,remove_queue,init_queue};
-
-// use json_conversions::{json_to_event, json_to_event_dec, JsonConversion};
+use conn_queues::{insert_queue, pop_queue, print_queue_status,init_queue};
 use json_conversions::{JsonConversion};
 
 #[derive(Clone)]
@@ -50,7 +43,6 @@ fn singleton() -> SingletonReader {
 
 #[derive(Clone, Debug)]
 pub struct QueueListener{
-    // conn_id: usize,
     conn_id: String,
 }
 
@@ -61,7 +53,6 @@ impl Listener for QueueListener {
 }
 
 pub fn get_connection(uuid: Uuid) {
-    // println!("operations::Rust::getConnection: {}", uuid);
     init_queue(uuid.to_string());
 }
 
@@ -116,90 +107,6 @@ pub fn init_examples(){
                 },
             ],
     });
-
-    // `from smoke[$x = area]() as smk
-    //  and last temperature[$y = value](area == $x, value > 45) as temp within 5min from smk
-    //  emit fire(area = $x, temp = $y)`
-    // engine.define(Rule {
-    //     predicates: vec![
-    //         Predicate {
-    //             ty: PredicateType::Trigger {
-    //                 parameters: vec![
-    //                     ParameterDeclaration {
-    //                         name: "x".to_owned(),
-    //                         expression: Arc::new(Expression::Reference {
-    //                             attribute: 0,
-    //                         }),
-    //                     },
-    //                 ],
-    //             },
-    //             tuple: ConstrainedTuple {
-    //                 ty_id: 0,
-    //                 constraints: vec![],
-    //                 alias: "smk".to_owned(),
-    //             },
-    //         },
-    //         Predicate {
-    //             ty: PredicateType::Event {
-    //                 selection: EventSelection::Last,
-    //                 parameters: vec![
-    //                     ParameterDeclaration {
-    //                         name: "y".to_owned(),
-    //                         expression: Arc::new(Expression::Reference {
-    //                             attribute: 1,
-    //                         }),
-    //                     },
-    //                 ],
-    //                 timing: Timing {
-    //                     upper: 0,
-    //                     bound: TimingBound::Within {
-    //                         window: Duration::minutes(5),
-    //                     },
-    //                 },
-    //             },
-    //             tuple: ConstrainedTuple {
-    //                 ty_id: 1,
-    //                 constraints: vec![
-    //                     Arc::new(Expression::BinaryOperation {
-    //                         operator: BinaryOperator::Equal,
-    //                         left: Box::new(Expression::Reference {
-    //                             attribute: 0,
-    //                         }),
-    //                         right: Box::new(Expression::Parameter {
-    //                             predicate: 0,
-    //                             parameter: 0,
-    //                         }),
-    //                     }),
-    //                     Arc::new(Expression::BinaryOperation {
-    //                         operator: BinaryOperator::GreaterThan,
-    //                         left: Box::new(Expression::Reference {
-    //                             attribute: 1,
-    //                         }),
-    //                         right: Box::new(Expression::Immediate {
-    //                             value: Value::Int(45),
-    //                         }),
-    //                     }),
-    //                 ],
-    //                 alias: "temp".to_owned(),
-    //             },
-    //         },
-    //     ],
-    //     filters: vec![],
-    //     event_template: EventTemplate {
-    //         ty_id: 2,
-    //         attributes: vec![
-    //             Expression::Parameter {
-    //                 predicate: 0,
-    //                 parameter: 0,
-    //             },
-    //             Expression::Parameter {
-    //                 predicate: 1,
-    //                 parameter: 0,
-    //             },
-    //         ],
-    //     },
-    //     consuming: vec![],
-    // });
 
     let rule1 = Rule {
         predicates: vec![
@@ -304,25 +211,15 @@ pub fn define_rule(rule: Json){
     engine.define(rule_struct);
 }
 
-// pub fn subscribe(connID: String) -> usize {
-pub fn subscribe(connID: String, event_type: usize) -> usize {
+pub fn subscribe(conn_id: String, event_type: usize) -> usize {
     println!("Rust::subscribe(...)");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
 
-    // let conn_id = engine.get_last_id() + (1 as usize);
-
-    // init_queue(conn_id);
-
-    // engine.subscribe(Box::new(QueueListener{conn_id : conn_id}))
-
-    // event_type should be added to engine.subscribe()
-    // engine.subscribe(Box::new(QueueListener{conn_id : format!("{}", conn_id)}))
-    engine.subscribe(Box::new(QueueListener{conn_id : connID}))
+    engine.subscribe(Box::new(QueueListener{conn_id : conn_id}))
 }
 
 pub fn unsubscribe(conn_id: usize){
-// pub fn unsubscribe(conn_id: String){
     println!("Rust::unsubscribe(...)");
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
@@ -343,39 +240,8 @@ pub fn unknown_publish(event: Json){
 
     // engine.publish(&Arc::new(json_to_event(event)));
     engine.publish(&Arc::new(Event::from_json(event)));
-
-
-
-    // let obj_event = event.as_object().unwrap();//BTreeMap<String, Json>
-    // let tuple = obj_event.get("tuple").unwrap();//Json
-    // let obj_tuple = tuple.as_object().unwrap();//BTreeMap<String, Json>
-    // let ty_id = obj_tuple.get("ty_id").unwrap();//Json
-    // let data = obj_tuple.get("data").unwrap();//Json
-    // let ty_id_u = ty_id.as_string().unwrap().parse::<usize>();// as usize;
-    // let data_a = data.as_array().unwrap();//Vec<Json>
-    //
-    // let mut vec_value: Vec<Value> = Vec::new();
-    //
-    // for data_e in data_a.iter(){//Json
-    //     if data_e.as_string().unwrap().parse::<i32>().is_ok() {
-    //         vec_value.push(Value::Int(data_e.as_string().unwrap().parse::<i32>().unwrap()));
-    //     } else {
-    //         vec_value.push(Value::Str(String::from(data_e.as_string().unwrap())));
-    //     }
-    // }
-    //
-    // let s = singleton();
-    // let mut engine = s.inner.lock().unwrap();
-    // engine.publish(&Arc::new(Event {
-    //     tuple: Tuple {
-    //         ty_id: ty_id_u.unwrap(),
-    //         data: vec_value,
-    //     },
-    //     time: UTC::now(),
-    // }));
 }
 
-// pub fn get_notification(conn_id: usize) -> Option<Arc<Event>> {
 pub fn get_notification(conn_id: String) -> Option<Arc<Event>> {
     println!("Rust::get_notification(...)");
     pop_queue(conn_id)
