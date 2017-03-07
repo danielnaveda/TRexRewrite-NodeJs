@@ -1,11 +1,11 @@
 grammar Declare;
 
 @header {
-import java.util.HashMap;
+  import java.util.HashMap;
 }
 @members {
-/** Map variable name to Integer object holding value */
-HashMap<String, String> memory = new HashMap<String, String>();
+  /** Map variable name to Integer object holding value */
+  HashMap<String, String> memory = new HashMap<String, String>();
 }
 
 // declare FIRE(value:string,val:int) with id 25

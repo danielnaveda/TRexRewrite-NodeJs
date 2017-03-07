@@ -5,3 +5,10 @@ DeclareListener.java
 DeclareParser.java
 Declare.tokens
 Declare*.class
+RuleDefinitionBaseListener.java
+RuleDefinitionLexer.java
+RuleDefinitionLexer.tokens
+RuleDefinitionListener.java
+RuleDefinitionParser.java
+RuleDefinition.tokens
+RuleDefinition*.class

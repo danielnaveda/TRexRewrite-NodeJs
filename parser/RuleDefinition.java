@@ -6,21 +6,13 @@ import java.io.InputStream;
 // Build and run
 // javac Declare.java Declare*.java
 // java Declare "declare SMOKE(value:string,val:int,temperature:int) with id 48"
-public class Declare {
+public class RuleDefinition {
   public static void main(String[] args) throws Exception {
-    // String inputFile = null;
-    // if ( args.length>0 ) inputFile = args[0];
-    // InputStream is = System.in;
-    // if ( inputFile!=null ) is = new FileInputStream(inputFile);
-    // ANTLRInputStream input = new ANTLRInputStream(is);
-    // ANTLRInputStream input = new ANTLRInputStream("declare FIRE(value:string,val:int) with id 25");
     ANTLRInputStream input = new ANTLRInputStream(args[0]);
 
-    DeclareLexer lexer = new DeclareLexer(input);
-    // DeclareLexer lexer = new DeclareLexer(new String("Declare declare FIRE(value:string,val:int) with id 25"));
+    RuleDefinitionLexer lexer = new RuleDefinitionLexer(input);
     CommonTokenStream tokens = new CommonTokenStream(lexer);
-    DeclareParser parser = new DeclareParser(tokens);
+    RuleDefinitionParser parser = new RuleDefinitionParser(tokens);
     ParseTree tree = parser.tesla(); // parse; start at prog
-    // System.out.println(tree.toStringTree(parser)); // print tree as text
   }
 }
