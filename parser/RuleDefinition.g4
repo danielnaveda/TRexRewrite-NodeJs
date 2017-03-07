@@ -1,4 +1,4 @@
-grammar Rules;
+grammar Declare;
 
 @header {
 import java.util.HashMap;
