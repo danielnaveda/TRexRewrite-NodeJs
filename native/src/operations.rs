@@ -190,6 +190,7 @@ pub fn init_examples(){
     };
 
     println!("\nrule1 {:?}\n", rule1);
+    engine.define(rule1);
 }
 
 pub fn declare_event(event: Json){
@@ -208,6 +209,7 @@ pub fn define_rule(rule: Json){
 
     let rule_struct = Rule::from_json(rule);
     println!("Rust::defineRule::rule_struct: {:?}\n",rule_struct);
+
     engine.define(rule_struct);
 }
 
