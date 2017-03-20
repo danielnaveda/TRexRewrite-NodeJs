@@ -8,6 +8,19 @@ grammar RuleDefinition;
   HashMap<String, String> memory = new HashMap<String, String>();
 }
 
+/*
+Move from:
+EventTypes SMOKE=55, TEMPERATURE=56;
+
+from SMOKE[x = area]() as SMK
+and last TEMPERATURE[y = value](area == x, value > 45) as TEMP within 5min from SMK
+emit FIRE(area = x, temp = y)
+
+To:
+from 0[x = 0]() as SMK
+and last 1[y = 1](0 == x, 1 > 45) as TEMP within 5min from SMK
+emit FIRE(0 = x, 1 = y)
+*/
 ////////////// DEFINE RULE
 tesla: event_ids from where? emit consuming?
 {
