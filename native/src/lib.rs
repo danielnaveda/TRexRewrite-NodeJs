@@ -48,6 +48,13 @@ fn w_init_examples(call: Call) -> JsResult<JsString> {
     Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
 }
 
+fn w_measure_time(call: Call) -> JsResult<JsString> {
+    let scope = call.scope;
+    // Dummy function to test timing
+
+    Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
+}
+
 fn w_declare_event(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
     let str_event = try!(try!(call.arguments.require(scope, 0)).check::<JsString>()).value();
@@ -185,5 +192,6 @@ register_module!(m, {
     m.export("status", w_status);
     m.export("get_notification", w_get_notification);
     m.export("publish", w_publish);
-    m.export("unknown_publish", w_unknown_publish)
+    m.export("unknown_publish", w_unknown_publish);
+    m.export("measure_time", w_measure_time)
 });
