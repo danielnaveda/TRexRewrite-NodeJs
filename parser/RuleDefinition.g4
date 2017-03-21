@@ -17,6 +17,11 @@ grammar RuleDefinition;
 
   /*Variable for Emit*/
   HashMap<String, String> emit_parameters = new HashMap<String, String>();
+
+  String predicates = "";
+  String event_template = "";
+  String filters = "";
+  String consuming = "";
 }
 
 /*
@@ -39,11 +44,6 @@ tesla: event_ids? from where? emit consuming?
   /*System.out.println(
   "{\"predicates\":[ { \"ty\": { \"Trigger\": { \"parameters\": [ { \"name\": \"x\",\"expression\": { \"Reference\": { \"attribute\": 0 } } } ] } },\"tuple\": { \"ty_id\": 0,\"constraints\": [],\"alias\": \"smk\" } },{ \"ty\": { \"Event\": { \"selection\": \"Last\",\"parameters\": [ { \"name\": \"y\",\"expression\": { \"Reference\": { \"attribute\": 1 } } } ],\"timing\": { \"upper\": 0,\"bound\": { \"Within\": { \"window\": 5 } } } } },\"tuple\": { \"ty_id\": 1,\"constraints\": [ { \"BinaryOperation\": { \"operator\": \"Equal\",\"left\": { \"Reference\": { \"attribute\": 0 } },\"right\": { \"Parameter\": { \"predicate\": 0,\"parameter\": 0 } } } },{ \"BinaryOperation\": { \"operator\": \"GreaterThan\",\"left\": { \"Reference\": { \"attribute\": 1 } },\"right\": { \"Immediate\": { \"value\": { \"type\": \"Int\",\"value\": \"45\" } } } } } ],\"alias\": \"temp\" } } ],\"filters\": [],\"event_template\": { \"ty_id\": 2,\"attributes\": [ { \"Parameter\": { \"predicate\": 0,\"parameter\": 0 } },{ \"Parameter\": { \"predicate\": 1,\"parameter\": 0 } } ] },\"consuming\": []}"
   );*/
-  
-  String predicates = "a";
-  String filters = "a";
-  String event_template = "a";
-  String consuming = "a";
 
   System.out.println(
     "{"+
@@ -52,14 +52,27 @@ tesla: event_ids? from where? emit consuming?
         "\"event_template\": {"+ event_template +"},"+
         "\"consuming\": ["+ consuming +"]"+
     "}"
-    );
+  );
 }
 ;
 
 
 event_ids: 'EventTypes' definition (',' definition)* ';' ;
 definition: CAPITAL_IDENTIFIER '=' float_t;
-from: 'from' predicate_body predicates;
+from: 'from' predicate_body predicates
+{
+  /*predicates = ;*/
+  /*predicate =
+  "{"+
+    "\"ty\":"
+    "\"tuple\": {"+
+      "\"ty_id\":"+ 0 +","+
+      "\"constraints\":["+  +"]"
+      "\"alias\": \"smk\""+
+    "}"
+  "}";*/
+}
+;
 //predicates: 'and' predicate predicates | 'and' predicate;
 predicates: ('and' predicate)*;
 //predicate: event | aggregate | static;
@@ -69,7 +82,39 @@ where: 'where' filters;
 filters: expression filters_tail;
 filters_tail: 'and' expression filters_tail;
 
-emit: 'emit' CAPITAL_IDENTIFIER evaluations;
+emit: 'emit' CAPITAL_IDENTIFIER evaluations
+{
+  /*HashMap<String, String> */
+  /*emit_evaluations
+  $CAPITAL_IDENTIFIER.text*/
+
+  /*String evaluations_var = "";
+  for (String key: emit_evaluations.keySet()){
+            String value = emit_evaluations.get(key);
+
+            //input: value
+            //output: predicate and parameter
+
+  }
+
+  System.out.println(
+    "{"+
+        "\"ty_id\": ["+ $CAPITAL_IDENTIFIER.text +"],"+
+        "\"attributes\": ["+ attributes +"]"+
+    "}"
+  );
+
+    String json_parameter =
+    "\"Parameter\": {"+
+      "\"predicate\":"+ predicate +","+
+      "\"parameter\":"+ parameter +","+
+    "}";
+
+    String json_parameters =
+    "{"+ json_parameters_group +
+    "}";*/
+}
+;
 //evaluations: '(' evaluation evaluations_tail ')';
 evaluations: '(' evaluation (',' evaluation) ')';
 //evaluations_tail: ',' evaluation evaluations_tail;
