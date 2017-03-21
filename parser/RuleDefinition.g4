@@ -2,35 +2,59 @@ grammar RuleDefinition;
 
 @header {
   import java.util.HashMap;
+  import java.util.Vector;
 }
 @members {
-  /** Map variable name to Integer object holding value */
-  HashMap<String, String> memory = new HashMap<String, String>();
+  /*HashMap<String, String> memory = new HashMap<String, String>();*/
+
+  /*Variables for Predicate Body*/
+  HashMap<String, String> predicate_body_parameters = new HashMap<String, String>();
+  HashMap<String, String> predicate_body_constraints = new HashMap<String, String>();
+
+  /*Variables for Predicates*/
+  Vector<HashMap<String, String>> predicates_parameters = new Vector<HashMap<String, String>>();
+  Vector<HashMap<String, String>> predicates_constraints = new Vector<HashMap<String, String>>();
+
+  /*Variable for Emit*/
+  HashMap<String, String> emit_parameters = new HashMap<String, String>();
 }
 
 /*
-Move from:
-EventTypes SMOKE=55, TEMPERATURE=56;
+  Move from:
+  EventTypes SMOKE=55, TEMPERATURE=56;
 
-from SMOKE[x = area]() as SMK
-and last TEMPERATURE[y = value](area == x, value > 45) as TEMP within 5min from SMK
-emit FIRE(area = x, temp = y)
+  from SMOKE[x = area]() as SMK
+  and last TEMPERATURE[y = value](area == x, value > 45) as TEMP within 5min from SMK
+  emit FIRE(area = x, temp = y)
 
-To:
-from 0[x = 0]() as SMK
-and last 1[y = 1](0 == x, 1 > 45) as TEMP within 5min from SMK
-emit FIRE(0 = x, 1 = y)
+  To:
+  from 0[x = 0]() as SMK
+  and last 1[y = 1](0 == x, 1 > 45) as TEMP within 5min from SMK
+  emit FIRE(0 = x, 1 = y)
 */
+
 ////////////// DEFINE RULE
-tesla: event_ids from where? emit consuming?
+tesla: event_ids? from where? emit consuming?
 {
-  System.out.println(
+  /*System.out.println(
   "{\"predicates\":[ { \"ty\": { \"Trigger\": { \"parameters\": [ { \"name\": \"x\",\"expression\": { \"Reference\": { \"attribute\": 0 } } } ] } },\"tuple\": { \"ty_id\": 0,\"constraints\": [],\"alias\": \"smk\" } },{ \"ty\": { \"Event\": { \"selection\": \"Last\",\"parameters\": [ { \"name\": \"y\",\"expression\": { \"Reference\": { \"attribute\": 1 } } } ],\"timing\": { \"upper\": 0,\"bound\": { \"Within\": { \"window\": 5 } } } } },\"tuple\": { \"ty_id\": 1,\"constraints\": [ { \"BinaryOperation\": { \"operator\": \"Equal\",\"left\": { \"Reference\": { \"attribute\": 0 } },\"right\": { \"Parameter\": { \"predicate\": 0,\"parameter\": 0 } } } },{ \"BinaryOperation\": { \"operator\": \"GreaterThan\",\"left\": { \"Reference\": { \"attribute\": 1 } },\"right\": { \"Immediate\": { \"value\": { \"type\": \"Int\",\"value\": \"45\" } } } } } ],\"alias\": \"temp\" } } ],\"filters\": [],\"event_template\": { \"ty_id\": 2,\"attributes\": [ { \"Parameter\": { \"predicate\": 0,\"parameter\": 0 } },{ \"Parameter\": { \"predicate\": 1,\"parameter\": 0 } } ] },\"consuming\": []}"
-  );
+  );*/
+  
+  String predicates = "a";
+  String filters = "a";
+  String event_template = "a";
+  String consuming = "a";
+
+  System.out.println(
+    "{"+
+        "\"predicates\": ["+ predicates +"],"+
+        "\"filters\": ["+ filters +"],"+
+        "\"event_template\": {"+ event_template +"},"+
+        "\"consuming\": ["+ consuming +"]"+
+    "}"
+    );
 }
 ;
-
-
 
 
 event_ids: 'EventTypes' definition (',' definition)* ';' ;
