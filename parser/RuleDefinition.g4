@@ -24,55 +24,22 @@ grammar RuleDefinition;
   String consuming = "";
 }
 
-/*
-  Move from:
-  EventTypes SMOKE=55, TEMPERATURE=56;
-
-  from SMOKE[x = area]() as SMK
-  and last TEMPERATURE[y = value](area == x, value > 45) as TEMP within 5min from SMK
-  emit FIRE(area = x, temp = y)
-
-  To:
-  from 0[x = 0]() as SMK
-  and last 1[y = 1](0 == x, 1 > 45) as TEMP within 5min from SMK
-  emit FIRE(0 = x, 1 = y)
-*/
-
-////////////// DEFINE RULE
 tesla: event_ids? from where? emit consuming?
 {
-  /*System.out.println(
-  "{\"predicates\":[ { \"ty\": { \"Trigger\": { \"parameters\": [ { \"name\": \"x\",\"expression\": { \"Reference\": { \"attribute\": 0 } } } ] } },\"tuple\": { \"ty_id\": 0,\"constraints\": [],\"alias\": \"smk\" } },{ \"ty\": { \"Event\": { \"selection\": \"Last\",\"parameters\": [ { \"name\": \"y\",\"expression\": { \"Reference\": { \"attribute\": 1 } } } ],\"timing\": { \"upper\": 0,\"bound\": { \"Within\": { \"window\": 5 } } } } },\"tuple\": { \"ty_id\": 1,\"constraints\": [ { \"BinaryOperation\": { \"operator\": \"Equal\",\"left\": { \"Reference\": { \"attribute\": 0 } },\"right\": { \"Parameter\": { \"predicate\": 0,\"parameter\": 0 } } } },{ \"BinaryOperation\": { \"operator\": \"GreaterThan\",\"left\": { \"Reference\": { \"attribute\": 1 } },\"right\": { \"Immediate\": { \"value\": { \"type\": \"Int\",\"value\": \"45\" } } } } } ],\"alias\": \"temp\" } } ],\"filters\": [],\"event_template\": { \"ty_id\": 2,\"attributes\": [ { \"Parameter\": { \"predicate\": 0,\"parameter\": 0 } },{ \"Parameter\": { \"predicate\": 1,\"parameter\": 0 } } ] },\"consuming\": []}"
-  );*/
-
   System.out.println(
     "{"+
-        "\"predicates\": ["+ predicates +"],"+
-        "\"filters\": ["+ filters +"],"+
-        "\"event_template\": {"+ event_template +"},"+
-        "\"consuming\": ["+ consuming +"]"+
+        "\"predicates\": "+ predicates +","+
+        "\"filters\": "+ filters +","+
+        "\"event_template\": "+ event_template +","+
+        "\"consuming\": "+ consuming +
     "}"
   );
 }
 ;
 
-
 event_ids: 'EventTypes' definition (',' definition)* ';' ;
 definition: CAPITAL_IDENTIFIER '=' float_t;
-from: 'from' predicate_body predicates
-{
-  /*predicates = ;*/
-  /*predicate =
-  "{"+
-    "\"ty\":"
-    "\"tuple\": {"+
-      "\"ty_id\":"+ 0 +","+
-      "\"constraints\":["+  +"]"
-      "\"alias\": \"smk\""+
-    "}"
-  "}";*/
-}
-;
+from: 'from' predicate_body predicates;
 //predicates: 'and' predicate predicates | 'and' predicate;
 predicates: ('and' predicate)*;
 //predicate: event | aggregate | static;
@@ -122,7 +89,26 @@ evaluations: '(' evaluation (',' evaluation) ')';
 evaluation: expression;
 
 consuming: 'consuming' CAPITAL_IDENTIFIER CAPITAL_IDENTIFIER;
-predicate_body: CAPITAL_IDENTIFIER assignments constraints alias;
+predicate_body: CAPITAL_IDENTIFIER assignments constraints alias
+{
+  /*predicates =
+  "{"+
+     "\"ty\": {"+
+      "\"Trigger\": {"+
+        "\"parameters\": ["+
+          $assignments.text+ //TODO: create json for this
+        "]"+
+      "}"+
+    "},"+
+    "\"tuple\": {"+
+      "\"ty_id\":"+ $CAPITAL_IDENTIFIER.text +","+
+      "\"constraints\":["+
+        //TODO: Fill this optional data
+       "]"
+      "\"alias\":" + $alias.text +
+    "}"
+  "}";*/
+};
 //assignments: '[' assignment assignments_tail ']';
 assignments: '[' assignment']';
 //assignments_tail: ',' assignment assignments_tail;

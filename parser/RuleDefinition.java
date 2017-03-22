@@ -11,5 +11,6 @@ public class RuleDefinition {
     CommonTokenStream tokens = new CommonTokenStream(lexer);
     RuleDefinitionParser parser = new RuleDefinitionParser(tokens);
     ParseTree tree = parser.tesla(); // parse; start at prog
+    ParseTreeWalker.DEFAULT.walk(new RuleDefinitionSubsetListener(), tree);
   }
 }
