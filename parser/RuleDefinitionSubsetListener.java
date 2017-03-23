@@ -1,33 +1,29 @@
-public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
+import org.json.simple.*;
 
-    // private Stack<Scope> scopes;
-    //
-    // public VarListener() {
-    //     scopes = new Stack<Scope>();
-    //     scopes.push(new Scope(null));
-    // }
+public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
+    JSONObject obj = new JSONObject();
 
     @Override
     public void enterTesla(RuleDefinitionParser.TeslaContext ctx) {
-      System.out.println("enterTesla: walking the tree");
+      obj.put("predicates", new JSONArray());
+      obj.put("filters", new JSONArray());
+      obj.put("event_template", new JSONObject());
+      obj.put("consuming", new JSONArray());
     }
 
     @Override
     public void exitTesla(RuleDefinitionParser.TeslaContext ctx) {
-      System.out.println("exitTesla: walking the tree");
+      System.out.println(obj);
     }
 
     @Override
     public void enterPredicate_body(RuleDefinitionParser.Predicate_bodyContext ctx) {
-      System.out.println("enterPredicate_body: walking the tree" + ctx.CAPITAL_IDENTIFIER().getText());
-      System.out.println("enterPredicate_body: walking the tree" + ctx.assignments().getText());
+      // obj.remove("predicates");
+
+      JSONArray list = (JSONArray) obj.get("predicates");
+      list.add("New entry");
     }
 
     @Override
-    public void exitPredicate_body(RuleDefinitionParser.Predicate_bodyContext ctx) {
-      System.out.println("enterPredicate_body: walking the tree" + ctx.CAPITAL_IDENTIFIER().getText());
-      System.out.println("enterPredicate_body: walking the tree" + ctx.assignments().getText());
-      // CAPITAL_IDENTIFIER
-      // assignments
-    }
+    public void exitPredicate_body(RuleDefinitionParser.Predicate_bodyContext ctx) {}
 }

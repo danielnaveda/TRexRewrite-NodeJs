@@ -26,14 +26,14 @@ grammar RuleDefinition;
 
 tesla: event_ids? from where? emit consuming?
 {
-  System.out.println(
+  /*System.out.println(
     "{"+
         "\"predicates\": "+ predicates +","+
         "\"filters\": "+ filters +","+
         "\"event_template\": "+ event_template +","+
         "\"consuming\": "+ consuming +
     "}"
-  );
+  );*/
 }
 ;
 
