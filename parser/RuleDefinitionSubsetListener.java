@@ -3,6 +3,9 @@ import org.json.simple.*;
 public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
     JSONObject obj = new JSONObject();
 
+    // Let's use a counter to keep track of the predicate order
+    private int predicate_index = 0;
+
     @Override
     public void enterTesla(RuleDefinitionParser.TeslaContext ctx) {
       obj.put("predicates", new JSONArray());
@@ -16,11 +19,38 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
       System.out.println(obj);
     }
 
+    @Override public void enterFrom(RuleDefinitionParser.FromContext ctx) {
+      JSONArray predicates = (JSONArray) obj.get("predicates");
+
+      JSONObject trigger = new JSONObject();
+      trigger.put("Trigger",new JSONObject());
+
+      JSONObject trigger_pred = new JSONObject();
+      trigger_pred.put("ty",trigger);
+
+      // predicates.add(new JSONObject());
+      predicates.add(trigger_pred);
+    }
+
     @Override
     public void enterPredicate_body(RuleDefinitionParser.Predicate_bodyContext ctx) {
       // obj.remove("predicates");
-      JSONArray list = (JSONArray) obj.get("predicates");
-      list.add("New entry");
+      // JSONArray list = (JSONArray) obj.get("predicates");
+      // list.add("New entry");
+      //
+      // ctx.CAPITAL_IDENTIFIER().getText()
+
+
+      JSONObject tuple = new JSONObject();
+      tuple.put("ty_id", ctx.CAPITAL_IDENTIFIER().getText());
+      tuple.put("constraints", new JSONArray());
+      tuple.put("alias", ctx.alias().CAPITAL_IDENTIFIER().getText());
+
+      JSONArray predicates = (JSONArray) obj.get("predicates");
+      // JSONObject predicate = (JSONObject)predicates.getJSONObject(predicate_index);
+      JSONObject predicate = (JSONObject)predicates.get(predicate_index);
+      // predicate.put("ty", new JSONObject());
+      predicate.put("tuple", tuple);
     }
 
     @Override
@@ -48,4 +78,25 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
 
     @Override
     public void exitPredicate_body(RuleDefinitionParser.Predicate_bodyContext ctx) {}
+
+
+    @Override
+    public void enterPredicate(RuleDefinitionParser.PredicateContext ctx) {
+      predicate_index++;
+      // JSONArray predicates = (JSONArray) obj.get("predicates");
+      // predicates.add(new JSONObject());
+    }
+
+    @Override public void enterEvent(RuleDefinitionParser.EventContext ctx) {
+      JSONArray predicates = (JSONArray) obj.get("predicates");
+
+      JSONObject event = new JSONObject();
+      event.put("Event",new JSONObject());
+
+      JSONObject event_pred = new JSONObject();
+      event_pred.put("ty",event);
+
+      // predicates.add(new JSONObject());
+      predicates.add(event_pred);      
+    }
 }
