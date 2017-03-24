@@ -109,8 +109,8 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
     }
 
     @Override public void enterAssignment(RuleDefinitionParser.AssignmentContext ctx) {
-      System.out.println(ctx.getChild(0).getText());
-      System.out.println(ctx.getChild(2).getText());
+      // System.out.println(ctx.getChild(0).getText());
+      // System.out.println(ctx.getChild(2).getText());
 
 
       // JSONObject tuple = new JSONObject();
@@ -129,9 +129,9 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
       else
         Trigger = (JSONObject) ty.get("Event");
 
-      System.out.println("Trigger: " + (Trigger==null));
+      // System.out.println("Trigger: " + (Trigger==null));
       JSONArray parameters = (JSONArray) Trigger.get("parameters");
-      System.out.println("parameters: " + (parameters==null));
+      // System.out.println("parameters: " + (parameters==null));
 
 
 
@@ -145,5 +145,67 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
                     );
 
       parameters.add(parameter);
+    }
+
+    @Override public void enterEvent_selection(RuleDefinitionParser.Event_selectionContext ctx) {
+      JSONArray predicates = (JSONArray) obj.get("predicates");
+      JSONObject predicate = (JSONObject) predicates.get(predicate_index);
+      JSONObject ty = (JSONObject) predicate.get("ty");
+      JSONObject Trigger = null;
+      if (predicate_index == 0)
+        Trigger = (JSONObject) ty.get("Trigger");
+      else
+        Trigger = (JSONObject) ty.get("Event");
+
+      Trigger.put("selection", ctx.getChild(0).getText());
+    }
+
+    @Override public void enterWithin(RuleDefinitionParser.WithinContext ctx) {
+      // predicates->predicate[predicate_index]->ty->Trigger/Event->timing
+      JSONArray predicates = (JSONArray) obj.get("predicates");
+      JSONObject predicate = (JSONObject) predicates.get(predicate_index);
+      JSONObject ty = (JSONObject) predicate.get("ty");
+      JSONObject Trigger = null;
+      if (predicate_index == 0)
+        Trigger = (JSONObject) ty.get("Trigger");
+      else
+        Trigger = (JSONObject) ty.get("Event");
+
+      JSONObject bound = new JSONObject();
+      bound.put("Within", new JSONObject());
+      JSONObject timing = new JSONObject();
+      timing.put("upper", new Integer(0));
+      timing.put("bound", bound);
+
+
+      Trigger.put("timing", timing);
+    }
+
+    @Override public void enterTime(RuleDefinitionParser.TimeContext ctx) {
+      // predicates->predicate[predicate_index]->ty->Trigger/Event->timing->bound->Within
+      // Add window in minutes
+      JSONArray predicates = (JSONArray) obj.get("predicates");
+      JSONObject predicate = (JSONObject) predicates.get(predicate_index);
+      JSONObject ty = (JSONObject) predicate.get("ty");
+      JSONObject Trigger = null;
+      if (predicate_index == 0)
+        Trigger = (JSONObject) ty.get("Trigger");
+      else
+        Trigger = (JSONObject) ty.get("Event");
+
+
+      JSONObject timing = (JSONObject) Trigger.get("timing");
+      JSONObject bound = (JSONObject) timing.get("bound");
+      JSONObject Within = (JSONObject) bound.get("Within");
+      Within.put("window",Integer.parseInt(ctx.float_t().getText()));
+
+      // JSONObject bound = new JSONObject();
+      // bound.put("Within", new JSONObject());
+      // JSONObject timing = new JSONObject();
+      // timing.put("upper", new Integer(0));
+      // timing.put("bound", bound);
+      //
+      //
+      // Trigger.put("timing", timing);
     }
 }
