@@ -22,8 +22,12 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
     @Override public void enterFrom(RuleDefinitionParser.FromContext ctx) {
       JSONArray predicates = (JSONArray) obj.get("predicates");
 
+      JSONObject parameters = new JSONObject();
+      parameters.put("parameters", new JSONArray());
+
       JSONObject trigger = new JSONObject();
-      trigger.put("Trigger",new JSONObject());
+      // trigger.put("Trigger",new JSONObject());
+      trigger.put("Trigger",parameters);
 
       JSONObject trigger_pred = new JSONObject();
       trigger_pred.put("ty",trigger);
@@ -90,13 +94,56 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
     @Override public void enterEvent(RuleDefinitionParser.EventContext ctx) {
       JSONArray predicates = (JSONArray) obj.get("predicates");
 
+      JSONObject parameters = new JSONObject();
+      parameters.put("parameters", new JSONArray());
+
       JSONObject event = new JSONObject();
-      event.put("Event",new JSONObject());
+      // event.put("Event",new JSONObject());
+      event.put("Event", parameters);
 
       JSONObject event_pred = new JSONObject();
       event_pred.put("ty",event);
 
       // predicates.add(new JSONObject());
-      predicates.add(event_pred);      
+      predicates.add(event_pred);
+    }
+
+    @Override public void enterAssignment(RuleDefinitionParser.AssignmentContext ctx) {
+      System.out.println(ctx.getChild(0).getText());
+      System.out.println(ctx.getChild(2).getText());
+
+
+      // JSONObject tuple = new JSONObject();
+      // tuple.put("ty_id", ctx.CAPITAL_IDENTIFIER().getText());
+      // tuple.put("constraints", new JSONArray());
+      // tuple.put("alias", ctx.alias().CAPITAL_IDENTIFIER().getText());
+
+
+      JSONArray predicates = (JSONArray) obj.get("predicates");
+      JSONObject predicate = (JSONObject) predicates.get(predicate_index);
+      // System.out.println("predicate_index: " + predicate_index);
+      JSONObject ty = (JSONObject) predicate.get("ty");
+      JSONObject Trigger = null;
+      if (predicate_index == 0)
+        Trigger = (JSONObject) ty.get("Trigger");
+      else
+        Trigger = (JSONObject) ty.get("Event");
+
+      System.out.println("Trigger: " + (Trigger==null));
+      JSONArray parameters = (JSONArray) Trigger.get("parameters");
+      System.out.println("parameters: " + (parameters==null));
+
+
+
+      JSONObject attribute = new JSONObject();attribute.put("attribute", new Integer(0));
+      JSONObject reference = new JSONObject();reference.put("Reference", attribute);
+
+      JSONObject parameter = new JSONObject();
+      parameter.put("name", ctx.getChild(0).getText());
+      parameter.put("expression",
+                    reference
+                    );
+
+      parameters.add(parameter);
     }
 }
