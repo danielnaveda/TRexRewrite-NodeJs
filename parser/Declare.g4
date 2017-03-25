@@ -24,10 +24,10 @@ tesla: expression identifier '(' attributes ')' WITH_ID ID
             } else {
               value = "Str";
             }
-            if (attributes_var != "")
-              attributes_var = ',' + attributes_var;
-            /*attributes_var = "\"" + key + "\"" + ":" + "\"" + value + "\"" + attributes_var;*/
-            attributes_var = "\"name\":\"" + key + "\"," + "\"ty\":\"" + value + "\"" + attributes_var;
+            if (attributes_var == "")
+              attributes_var = "{\"name\":\"" + key + "\"," + "\"ty\":\"" + value + "\"}";
+            else
+              attributes_var = attributes_var + ",{\"name\":\"" + key + "\"," + "\"ty\":\"" + value + "\"}";
 
 
 /*'int' => Int
@@ -42,7 +42,7 @@ tesla: expression identifier '(' attributes ')' WITH_ID ID
     "\"ty\": \"Event\","+
     "\"id\":"+$ID.text+","+
     "\"name\": \""+$identifier.text+"\","+
-    "\"attributes\": [{"+attributes_var+"}]"+
+    "\"attributes\": ["+attributes_var+"]"+
    "}"
   );
 }

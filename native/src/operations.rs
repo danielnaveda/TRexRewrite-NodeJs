@@ -64,7 +64,7 @@ pub fn init_examples(){
     let mut engine = s.inner.lock().unwrap();
 
     // `declare smoke(area: string) with id 0`
-    engine.declare(TupleDeclaration {
+    let declare1 = TupleDeclaration {
         ty: TupleType::Event,
         id: 0,
         name: "smoke".to_owned(),
@@ -74,9 +74,11 @@ pub fn init_examples(){
                     ty: BasicType::Str,
                 },
             ],
-    });
+    };
+    println!("\ndeclare1 {:?}\n", declare1);
+    engine.declare(declare1);
 
-    engine.declare(TupleDeclaration {
+    let declare2 = TupleDeclaration {
         ty: TupleType::Event,
         id: 1,
         name: "temperature".to_owned(),
@@ -90,9 +92,11 @@ pub fn init_examples(){
                     ty: BasicType::Int,
                 },
             ],
-    });
+    };
+    println!("\ndeclare2 {:?}\n", declare2);
+    engine.declare(declare2);
 
-    engine.declare(TupleDeclaration {
+    let declare3 = TupleDeclaration {
         ty: TupleType::Event,
         id: 2,
         name: "fire".to_owned(),
@@ -106,7 +110,9 @@ pub fn init_examples(){
                     ty: BasicType::Int,
                 },
             ],
-    });
+    };
+    println!("\ndeclare3 {:?}\n", declare3);
+    engine.declare(declare3);
 
     let rule1 = Rule {
         predicates: vec![
@@ -188,7 +194,6 @@ pub fn init_examples(){
         },
         consuming: vec![],
     };
-
     println!("\nrule1 {:?}\n", rule1);
     engine.define(rule1);
 }
@@ -199,6 +204,7 @@ pub fn declare_event(event: Json){
     let mut engine = s.inner.lock().unwrap();
 
     let event_struct = TupleDeclaration::from_json(event);
+    println!("Rust::defineRule::event_struct: {:?}\n",event_struct);
     engine.declare(event_struct);
 }
 
