@@ -9,11 +9,9 @@ grammar Declare;
 }
 
 // declare FIRE(value:string,val:int) with id 25
-tesla: expression IDENTIFIER '(' attributes ')' WITH_ID ID
+/*tesla: expression IDENTIFIER '(' attributes ')' WITH_ID ID*/
+tesla: expression identifier '(' attributes ')' WITH_ID ID
 {
-  /*System.out.println("IDENTIFIER: " + $IDENTIFIER.text);
-  System.out.println("ID: " + $ID.text);
-  */
   String attributes_var = "";
   for (String key: memory.keySet()){
             String value = memory.get(key);
@@ -43,17 +41,22 @@ tesla: expression IDENTIFIER '(' attributes ')' WITH_ID ID
   "{"+
     "\"ty\": \"Event\","+
     "\"id\":"+$ID.text+","+
-    "\"name\": \""+$IDENTIFIER.text+"\","+
+    "\"name\": \""+$identifier.text+"\","+
     "\"attributes\": [{"+attributes_var+"}]"+
    "}"
   );
 }
 ;
 expression: 'declare' | 'declare fact';
+identifier: IDENTIFIER | LOWER_IDENTIFIER;
 IDENTIFIER: [A-Z]+ ;
+LOWER_IDENTIFIER: [a-z]+ ;
 attributes: attribute (',' attribute)*;
-attribute: ATTRIBUTE_NAME ':' attribute_t {memory.put($ATTRIBUTE_NAME.text, $attribute_t.text);};
-ATTRIBUTE_NAME: [a-z]+;
+/*attribute: ATTRIBUTE_NAME ':' attribute_t {memory.put($ATTRIBUTE_NAME.text, $attribute_t.text);};*/
+attribute: attribute_n ':' attribute_t
+{memory.put($attribute_n.text, $attribute_t.text);};
+attribute_n: LOWER_IDENTIFIER;
+/*ATTRIBUTE_NAME: [a-z]+;*/
 attribute_t: 'int' | 'float' | 'bool' | 'string' ;
 WITH_ID: 'with' WS 'id';
 ID: [0-9]+ ;

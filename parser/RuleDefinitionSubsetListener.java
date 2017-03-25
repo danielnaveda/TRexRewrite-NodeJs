@@ -61,7 +61,8 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
       }
 
       tuple.put("constraints", new JSONArray());
-      tuple.put("alias", ctx.alias().CAPITAL_IDENTIFIER().getText());
+      // tuple.put("alias", ctx.alias().CAPITAL_IDENTIFIER().getText());
+      tuple.put("alias", ctx.alias().getChild(1).getText());
 
       JSONArray predicates = (JSONArray) obj.get("predicates");
       // JSONObject predicate = (JSONObject)predicates.getJSONObject(predicate_index);

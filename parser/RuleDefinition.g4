@@ -50,7 +50,8 @@ filters: expression filters_tail;
 filters_tail: 'and' expression filters_tail;
 
 /*emit: 'emit' CAPITAL_IDENTIFIER evaluations*/
-emit: 'emit' (CAPITAL_IDENTIFIER | IMMEDIATE) evaluations
+/*emit: 'emit' (CAPITAL_IDENTIFIER | IMMEDIATE) evaluations*/
+emit: 'emit' (CAPITAL_IDENTIFIER | LOWER_IDENTIFIER | IMMEDIATE) evaluations
 {
   /*HashMap<String, String> */
   /*emit_evaluations
@@ -91,7 +92,8 @@ evaluation: expression;
 
 consuming: 'consuming' CAPITAL_IDENTIFIER CAPITAL_IDENTIFIER;
 /*predicate_body: CAPITAL_IDENTIFIER assignments constraints alias*/
-predicate_body: (CAPITAL_IDENTIFIER | IMMEDIATE) assignments constraints alias
+/*predicate_body: (CAPITAL_IDENTIFIER | IMMEDIATE) assignments constraints alias*/
+predicate_body: (CAPITAL_IDENTIFIER | LOWER_IDENTIFIER | IMMEDIATE) assignments constraints alias
 {
   /*predicates =
   "{"+
@@ -119,7 +121,8 @@ assignment: parameter '=' parameter;
 //constraints: '(' expression constraints_tail ')' | '(' expression ')' | '(' ')';
 constraints: '(' expression (',' expression)* ')' | '(' ')';
 constraints_tail: ',' expression constraints_tail;
-alias: 'as' CAPITAL_IDENTIFIER;
+/*alias: 'as' CAPITAL_IDENTIFIER;*/
+alias: 'as' (CAPITAL_IDENTIFIER | LOWER_IDENTIFIER);
 
 event: event_selection predicate_body timing;
 event_selection: 'each' | 'not' | 'first' | 'last';
@@ -143,7 +146,8 @@ orderings: ',' ordering orderings;
 order: 'asc' | 'desc';
 
 timing: within | between;
-within: 'within' time 'from' CAPITAL_IDENTIFIER;
+/*within: 'within' time 'from' CAPITAL_IDENTIFIER;*/
+within: 'within' time 'from' (CAPITAL_IDENTIFIER | LOWER_IDENTIFIER);
 between: 'between' CAPITAL_IDENTIFIER 'and' CAPITAL_IDENTIFIER;
 time: float_t time_unit;
 time_unit: 'd' | 'h' | 'min' | 's' | 'ms' | 'us';

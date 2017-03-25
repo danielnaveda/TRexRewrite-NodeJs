@@ -171,15 +171,73 @@ impl JsonConversion for Expression {
                                   .as_u64().unwrap() as usize)
             }
         } else if json_i.as_object().unwrap().contains_key("BinaryOperation") {
-            Expression::BinaryOperation {
-                operator: BinaryOperator::GreaterThan,
-                left: Box::new(Expression::Reference {
-                    attribute: 1,
-                }),
-                right: Box::new(Expression::Immediate {
-                    value: Value::Int(45),
-                }),
+            let operator_str = json_i.as_object().unwrap().get("BinaryOperation").unwrap()
+                            .as_object().unwrap().get("operator").unwrap()
+                            .as_string().unwrap();
+
+            let mut operator = BinaryOperator::GreaterThan;
+            if operator_str == "Plus" {
+                operator = BinaryOperator::Plus;
+            } else if operator_str == "Minus" {
+                operator = BinaryOperator::Minus;
+            } else if operator_str == "Times" {
+                operator = BinaryOperator::Times;
+            } else if operator_str == "Division" {
+                operator = BinaryOperator::Division;
+            } else if operator_str == "Equal" {
+                operator = BinaryOperator::Equal;
+            } else if operator_str == "NotEqual" {
+                operator = BinaryOperator::NotEqual;
+            } else if operator_str == "GreaterThan" {
+                operator = BinaryOperator::GreaterThan;
+            } else if operator_str == "GreaterEqual" {
+                operator = BinaryOperator::GreaterEqual;
+            } else if operator_str == "LowerThan" {
+                operator = BinaryOperator::LowerThan;
+            } else if operator_str == "LowerEqual" {
+                operator = BinaryOperator::LowerEqual;
             }
+
+            let mut right = Box::new(Expression::Immediate {value: Value::Int(45),});
+
+            if json_i.as_object().unwrap().get("BinaryOperation").unwrap()
+                  .as_object().unwrap().get("right").unwrap()
+                  .as_object().unwrap().contains_key("Parameter") {
+                      right = Box::new(Expression::Parameter {
+                          predicate: json_i.as_object().unwrap().get("BinaryOperation").unwrap()
+                                           .as_object().unwrap().get("right").unwrap()
+                                           .as_object().unwrap().get("Parameter").unwrap()
+                                           .as_object().unwrap().get("predicate").unwrap()
+                                           .as_u64().unwrap() as usize,
+                          parameter: json_i.as_object().unwrap().get("BinaryOperation").unwrap()
+                                           .as_object().unwrap().get("right").unwrap()
+                                           .as_object().unwrap().get("Parameter").unwrap()
+                                           .as_object().unwrap().get("parameter").unwrap()
+                                           .as_u64().unwrap() as usize
+                      });
+                  }
+
+
+
+            Expression::BinaryOperation {
+                operator: operator,
+                left: Box::new(Expression::Reference {attribute: json_i.as_object().unwrap().get("BinaryOperation").unwrap()
+                                                                       .as_object().unwrap().get("left").unwrap()
+                                                                       .as_object().unwrap().get("Reference").unwrap()
+                                                                       .as_object().unwrap().get("attribute").unwrap()
+                                                                       .as_u64().unwrap() as usize,}),
+                right: right,
+                // right: Box::new(Expression::Immediate {value: Value::Int(45),}),
+            }
+            // Expression::BinaryOperation {
+            //     operator: BinaryOperator::GreaterThan,
+            //     left: Box::new(Expression::Reference {
+            //         attribute: 1,
+            //     }),
+            //     right: Box::new(Expression::Immediate {
+            //         value: Value::Int(45),
+            //     }),
+            // }
         } else {
             Expression::Reference {
                 attribute: (json_i.as_object().unwrap().get("Reference").unwrap()
