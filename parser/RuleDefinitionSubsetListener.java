@@ -8,6 +8,7 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
 
     // Let's use a counter to keep track of the predicate order
     private int predicate_index = 0;
+    private int parameter_index = 0;
 
     @Override
     public void enterTesla(RuleDefinitionParser.TeslaContext ctx) {
@@ -86,18 +87,18 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
 
     @Override
     public void enterEvaluation(RuleDefinitionParser.EvaluationContext ctx) {
-      JSONObject event_t_obj = (JSONObject) obj.get("event_template");
-      JSONArray attributes = (JSONArray) event_t_obj.get("attributes");
-
-      JSONObject parameter = new JSONObject();
-      JSONObject parameter_content = new JSONObject();
-
-      parameter_content.put("predicate", new Integer(0));
-      parameter_content.put("parameter", new Integer(0));
-
-      parameter.put("Parameter", parameter_content);
-
-      attributes.add(parameter);
+      // JSONObject event_t_obj = (JSONObject) obj.get("event_template");
+      // JSONArray attributes = (JSONArray) event_t_obj.get("attributes");
+      //
+      // JSONObject parameter = new JSONObject();
+      // JSONObject parameter_content = new JSONObject();
+      //
+      // parameter_content.put("predicate", new Integer(0));
+      // parameter_content.put("parameter", new Integer(0));
+      //
+      // parameter.put("Parameter", parameter_content);
+      //
+      // attributes.add(parameter);
     }
 
     @Override
@@ -128,17 +129,11 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
       predicates.add(event_pred);
     }
 
+    @Override public void enterAssignments(RuleDefinitionParser.AssignmentsContext ctx) {
+      parameter_index = 0;
+    }
+
     @Override public void enterAssignment(RuleDefinitionParser.AssignmentContext ctx) {
-      // System.out.println(ctx.getChild(0).getText());
-      // System.out.println(ctx.getChild(2).getText());
-
-
-      // JSONObject tuple = new JSONObject();
-      // tuple.put("ty_id", ctx.CAPITAL_IDENTIFIER().getText());
-      // tuple.put("constraints", new JSONArray());
-      // tuple.put("alias", ctx.alias().CAPITAL_IDENTIFIER().getText());
-
-
       JSONArray predicates = (JSONArray) obj.get("predicates");
       JSONObject predicate = (JSONObject) predicates.get(predicate_index);
       // System.out.println("predicate_index: " + predicate_index);
@@ -161,9 +156,6 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
         attribute.put("attribute", ctx.getChild(2).getText());
       }
 
-
-
-
       JSONObject reference = new JSONObject();reference.put("Reference", attribute);
 
       JSONObject parameter = new JSONObject();
@@ -176,16 +168,21 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
 
       JSONObject var_parameter_cont = new JSONObject();
       var_parameter_cont.put("predicate", new Integer(predicate_index));
-      if(isNumeric(ctx.getChild(2).getText())) {
-        var_parameter_cont.put("parameter", Integer.parseInt(ctx.getChild(2).getText()));
-      } else {
-        var_parameter_cont.put("parameter", ctx.getChild(2).getText());
-      }
+
+      // if(isNumeric(ctx.getChild(2).getText())) {
+      //   var_parameter_cont.put("parameter", Integer.parseInt(ctx.getChild(2).getText()));
+      // } else {
+      //   var_parameter_cont.put("parameter", ctx.getChild(2).getText());
+      // }
+      var_parameter_cont.put("parameter", new Integer(parameter_index));
+
 
       JSONObject var_parameter = new JSONObject();
       var_parameter.put("Parameter", var_parameter_cont);
 
       variables.put(ctx.getChild(0).getText(), var_parameter);
+
+      parameter_index++;
     }
 
     @Override public void enterEvent_selection(RuleDefinitionParser.Event_selectionContext ctx) {
@@ -342,7 +339,20 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
 
         constraints.add(constraint);
       } else {
+        JSONObject event_t_obj = (JSONObject) obj.get("event_template");
+        JSONArray attributes = (JSONArray) event_t_obj.get("attributes");
 
+        // JSONObject parameter = new JSONObject();
+        // JSONObject parameter_content = new JSONObject();
+
+        JSONObject parameter = variables.get(ctx.getChild(2).getText());
+
+        // parameter_content.put("predicate", new Integer(0));
+        // parameter_content.put("parameter", new Integer(0));
+        //
+        // parameter.put("Parameter", parameter_content);
+
+        attributes.add(parameter);
       }
     }
 
