@@ -49,7 +49,8 @@ where: 'where' filters;
 filters: expression filters_tail;
 filters_tail: 'and' expression filters_tail;
 
-emit: 'emit' CAPITAL_IDENTIFIER evaluations
+/*emit: 'emit' CAPITAL_IDENTIFIER evaluations*/
+emit: 'emit' (CAPITAL_IDENTIFIER | IMMEDIATE) evaluations
 {
   /*HashMap<String, String> */
   /*emit_evaluations
@@ -89,7 +90,8 @@ evaluations: '(' evaluation (',' evaluation) ')';
 evaluation: expression;
 
 consuming: 'consuming' CAPITAL_IDENTIFIER CAPITAL_IDENTIFIER;
-predicate_body: CAPITAL_IDENTIFIER assignments constraints alias
+/*predicate_body: CAPITAL_IDENTIFIER assignments constraints alias*/
+predicate_body: (CAPITAL_IDENTIFIER | IMMEDIATE) assignments constraints alias
 {
   /*predicates =
   "{"+
@@ -164,7 +166,8 @@ qualifier: CAPITAL_IDENTIFIER '.';
 
 CAPITAL_IDENTIFIER: [A-Z]+ ;
 LOWER_IDENTIFIER: [a-z]+ ;
-parameter: LOWER_IDENTIFIER;
+/*parameter: LOWER_IDENTIFIER;*/
+parameter: LOWER_IDENTIFIER | IMMEDIATE;
 capital_identifiers: ',' capital_identifiers;
 lower_identifiers: ',' LOWER_IDENTIFIER lower_identifiers;
 IMMEDIATE: [0-9]+ ;

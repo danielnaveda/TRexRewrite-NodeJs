@@ -1,7 +1,10 @@
 import org.json.simple.*;
+import java.util.HashMap;
 
 public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
     JSONObject obj = new JSONObject();
+
+    HashMap<String, JSONObject> variables = new HashMap<String, JSONObject>();
 
     // Let's use a counter to keep track of the predicate order
     private int predicate_index = 0;
@@ -46,7 +49,16 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
 
 
       JSONObject tuple = new JSONObject();
-      tuple.put("ty_id", ctx.CAPITAL_IDENTIFIER().getText());
+      // tuple.put("ty_id", ctx.CAPITAL_IDENTIFIER().getText());
+
+      // tuple.put("ty_id", ctx.getChild(0).getText());
+
+      if (isNumeric(ctx.getChild(0).getText())) {
+        tuple.put("ty_id", Integer.parseInt(ctx.getChild(0).getText()));
+      } else {
+        tuple.put("ty_id", ctx.getChild(0).getText());
+      }
+
       tuple.put("constraints", new JSONArray());
       tuple.put("alias", ctx.alias().CAPITAL_IDENTIFIER().getText());
 
@@ -61,7 +73,14 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
     public void enterEmit(RuleDefinitionParser.EmitContext ctx) {
       predicate_index = -1;
       JSONObject event_t_obj = (JSONObject) obj.get("event_template");
-      event_t_obj.put("ty_id", ctx.CAPITAL_IDENTIFIER().getText());
+      // event_t_obj.put("ty_id", ctx.CAPITAL_IDENTIFIER().getText());
+      if (isNumeric(ctx.getChild(1).getText())) {
+        event_t_obj.put("ty_id", Integer.parseInt(ctx.getChild(1).getText()));
+      } else {
+        event_t_obj.put("ty_id", ctx.getChild(1).getText());
+      }
+
+
       event_t_obj.put("attributes", new JSONArray());
     }
 
@@ -134,9 +153,17 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
       JSONArray parameters = (JSONArray) Trigger.get("parameters");
       // System.out.println("parameters: " + (parameters==null));
 
+      JSONObject attribute = new JSONObject();
+
+      if (isNumeric(ctx.getChild(2).getText())){
+        attribute.put("attribute", Integer.parseInt(ctx.getChild(2).getText()));
+      } else {
+        attribute.put("attribute", ctx.getChild(2).getText());
+      }
 
 
-      JSONObject attribute = new JSONObject();attribute.put("attribute", new Integer(0));
+
+
       JSONObject reference = new JSONObject();reference.put("Reference", attribute);
 
       JSONObject parameter = new JSONObject();
@@ -146,6 +173,19 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
                     );
 
       parameters.add(parameter);
+
+      JSONObject var_parameter_cont = new JSONObject();
+      var_parameter_cont.put("predicate", new Integer(predicate_index));
+      if(isNumeric(ctx.getChild(2).getText())) {
+        var_parameter_cont.put("parameter", Integer.parseInt(ctx.getChild(2).getText()));
+      } else {
+        var_parameter_cont.put("parameter", ctx.getChild(2).getText());
+      }
+
+      JSONObject var_parameter = new JSONObject();
+      var_parameter.put("Parameter", var_parameter_cont);
+
+      variables.put(ctx.getChild(0).getText(), var_parameter);
     }
 
     @Override public void enterEvent_selection(RuleDefinitionParser.Event_selectionContext ctx) {
@@ -224,32 +264,37 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
 
         JSONObject binary_operation = new JSONObject();
 
-
-
-        JSONObject parameter = new JSONObject();
-        parameter.put("predicate", new Integer(0));
-        parameter.put("parameter", new Integer(0));
-
-
-
-
         JSONObject right = new JSONObject();
 
         if (isNumeric(ctx.getChild(2).getText())){
           JSONObject value = new JSONObject();
           value.put("type", "Int");
-          value.put("value", "45");
+          value.put("value", ctx.getChild(2).getText());
 
           JSONObject immediate = new JSONObject();
           immediate.put("value", value);
 
           right.put("Immediate", immediate);
         } else {
-          right.put("Parameter", parameter);
+          // JSONObject parameter = new JSONObject();
+
+          JSONObject parameter = variables.get(ctx.getChild(2).getText());
+
+
+          // parameter.put("predicate", new Integer(0));
+          // parameter.put("parameter", new Integer(0));
+
+          // right.put("Parameter", parameter);
+          right = parameter;
         }
 
         JSONObject reference = new JSONObject();
-        reference.put("attribute", new Integer(0));
+
+        if (isNumeric(ctx.getChild(0).getText())) {
+          reference.put("attribute", Integer.parseInt(ctx.getChild(0).getText()));
+        } else {
+          reference.put("attribute", ctx.getChild(0).getText());
+        }
 
         JSONObject left = new JSONObject();
         left.put("Reference", reference);
@@ -290,8 +335,6 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
         }
 
         binary_operation.put("operator", op_string);
-
-
         binary_operation.put("left", left);
         binary_operation.put("right", right);
 
