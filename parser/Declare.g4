@@ -17,10 +17,26 @@ tesla: expression IDENTIFIER '(' attributes ')' WITH_ID ID
   String attributes_var = "";
   for (String key: memory.keySet()){
             String value = memory.get(key);
-            //System.out.println(key + " " + value);
+            if (value.equals("int")) {
+              value = "Int";
+            } else if (value.equals("float")) {
+              value = "Float";
+            } else if (value.equals("bool")) {
+              value = "Bool";
+            } else {
+              value = "Str";
+            }
             if (attributes_var != "")
               attributes_var = ',' + attributes_var;
-            attributes_var = "\"" + key + "\"" + ":" + "\"" + value + "\"" + attributes_var;
+            /*attributes_var = "\"" + key + "\"" + ":" + "\"" + value + "\"" + attributes_var;*/
+            attributes_var = "\"name\":\"" + key + "\"," + "\"ty\":\"" + value + "\"" + attributes_var;
+
+
+/*'int' => Int
+'float' => Float
+'bool' => Bool
+'string' => Str*/
+
   }
 
   System.out.println(
