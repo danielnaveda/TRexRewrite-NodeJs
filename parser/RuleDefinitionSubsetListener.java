@@ -59,6 +59,7 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
 
     @Override
     public void enterEmit(RuleDefinitionParser.EmitContext ctx) {
+      predicate_index = -1;
       JSONObject event_t_obj = (JSONObject) obj.get("event_template");
       event_t_obj.put("ty_id", ctx.CAPITAL_IDENTIFIER().getText());
       event_t_obj.put("attributes", new JSONArray());
@@ -157,7 +158,9 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
       else
         Trigger = (JSONObject) ty.get("Event");
 
-      Trigger.put("selection", ctx.getChild(0).getText());
+      // Trigger.put("selection", ctx.getChild(0).getText());
+      Trigger.put("selection", ctx.getChild(0).getText().substring(0, 1).toUpperCase() + ctx.getChild(0).getText().substring(1));
+
     }
 
     @Override public void enterWithin(RuleDefinitionParser.WithinContext ctx) {
@@ -207,5 +210,101 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
       //
       //
       // Trigger.put("timing", timing);
+    }
+
+    @Override public void enterExpression(RuleDefinitionParser.ExpressionContext ctx) {
+      // predicates->predicate[predicate_index]->tuple->constraints
+      if (predicate_index >= 0) {
+        JSONArray predicates = (JSONArray) obj.get("predicates");
+        JSONObject predicate = (JSONObject) predicates.get(predicate_index);
+        JSONObject ty = (JSONObject) predicate.get("tuple");
+        JSONArray constraints = (JSONArray) ty.get("constraints");
+
+        JSONObject constraint = new JSONObject();
+
+        JSONObject binary_operation = new JSONObject();
+
+
+
+        JSONObject parameter = new JSONObject();
+        parameter.put("predicate", new Integer(0));
+        parameter.put("parameter", new Integer(0));
+
+
+
+
+        JSONObject right = new JSONObject();
+
+        if (isNumeric(ctx.getChild(2).getText())){
+          JSONObject value = new JSONObject();
+          value.put("type", "Int");
+          value.put("value", "45");
+
+          JSONObject immediate = new JSONObject();
+          immediate.put("value", value);
+
+          right.put("Immediate", immediate);
+        } else {
+          right.put("Parameter", parameter);
+        }
+
+        JSONObject reference = new JSONObject();
+        reference.put("attribute", new Integer(0));
+
+        JSONObject left = new JSONObject();
+        left.put("Reference", reference);
+
+        // binary_operation.put("operator", ctx.getChild(1).getText());
+
+        String op_string = new String();
+
+        if(ctx.getChild(1).getText().equals("+")) {
+          op_string = "Plus";
+        }
+        else if(ctx.getChild(1).getText().equals("-")) {
+          op_string = "Minus";
+        }
+        else if(ctx.getChild(1).getText().equals("*")) {
+          op_string = "Times";
+        }
+        else if(ctx.getChild(1).getText().equals("/")) {
+          op_string = "Division";
+        }
+        else if(ctx.getChild(1).getText().equals("=") || ctx.getChild(1).getText().equals("==")) {
+          op_string = "Equal";
+        }
+        else if(ctx.getChild(1).getText().equals("!=")) {
+          op_string = "NotEqual";
+        }
+        else if(ctx.getChild(1).getText().equals(">")) {
+          op_string = "GreaterThan";
+        }
+        else if(ctx.getChild(1).getText().equals(">=")) {
+          op_string = "GreaterEqual";
+        }
+        else if(ctx.getChild(1).getText().equals("<")) {
+          op_string = "LowerThan";
+        }
+        else if(ctx.getChild(1).getText().equals("<=")) {
+          op_string = "LowerEqual";
+        }
+
+        binary_operation.put("operator", op_string);
+
+
+        binary_operation.put("left", left);
+        binary_operation.put("right", right);
+
+        constraint.put("BinaryOperation", binary_operation);
+
+        constraints.add(constraint);
+      } else {
+
+      }
+    }
+
+
+    public boolean isNumeric(String s) {
+        return java.util.regex.Pattern.matches("\\d+", s);
     }
 }
