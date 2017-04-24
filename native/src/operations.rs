@@ -196,6 +196,11 @@ pub fn init_examples(){
     };
     println!("\nrule1 {:?}\n", rule1);
     engine.define(rule1);
+
+    println!("Smoke ID: {}",engine.tuple_id("smoke").unwrap());
+    println!("Temperature.value ID: {}",engine.tupleattr_id("temperature","value").unwrap());
+    println!("Fire ID: {}",engine.tuple_id("fire").unwrap());
+    println!("Fire.area ID: {}",engine.tupleattr_id("fire","area").unwrap());
 }
 
 pub fn declare_event(event: Json){
