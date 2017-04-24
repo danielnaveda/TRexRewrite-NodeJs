@@ -110,6 +110,26 @@ impl TRex {
 }
 
 impl Engine for TRex {
+    fn tuple_id(&mut self, name: &str) -> Option<usize> {
+        for (id, tuple) in &self.tuples {
+            if tuple.name == name {
+                return Some(*id);
+            }
+        }
+        None
+    }
+    fn tupleattr_id(&mut self, tuple_name: &str, attr_name: &str) -> Option<usize> {
+        for (tuple_id, tuple) in &self.tuples {
+            if tuple.name == tuple_name {
+                for (attr_id, attr) in tuple.attributes.iter().enumerate() {
+                    if attr.name == attr_name {
+                        return Some(attr_id);
+                    }
+                }
+            }
+        }
+        None        
+    }
     fn declare(&mut self, tuple: TupleDeclaration) {
         if let Entry::Vacant(entry) = self.tuples.entry(tuple.id) {
             entry.insert(tuple);

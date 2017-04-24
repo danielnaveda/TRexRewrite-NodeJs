@@ -83,6 +83,8 @@ pub trait Listener {
 }
 
 pub trait Engine {
+    fn tuple_id(&mut self, name: &str) -> Option<usize>;
+    fn tupleattr_id(&mut self, tuple_name: &str, attr_name: &str) -> Option<usize>;
     fn declare(&mut self, tuple: TupleDeclaration);
     fn define(&mut self, rule: Rule);
     fn publish(&mut self, event: &Arc<Event>);
