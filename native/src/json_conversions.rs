@@ -50,7 +50,7 @@ impl JsonConversion for Event {
 impl JsonConversion for BasicType {
     fn from_json(json_i : Json) -> Self {
         println!("BasicType::from_json: {:?}\n", json_i);
-        // match json_i.as_object().unwrap().get("BasicType").unwrap().as_string().unwrap() {
+
         match json_i.as_string().unwrap() {
             "Int" => {BasicType::Int},
             "Float" => {BasicType::Float},
@@ -128,49 +128,19 @@ impl JsonConversion for Expression {
     fn from_json(json_i : Json) -> Self {
         println!("Expression::from_json: {:?}\n", json_i);
 
-        // match json_i.as_object().unwrap().get("type").unwrap().as_string().unwrap() {
-        //     "Immediate" => {
-        //         Expression::Immediate {
-        //             value: Value::from_json(json_i.as_object().unwrap().get("value").unwrap().clone())
-        //         }
-        //     },
-        //     "Reference" => {
-        //         Expression::Reference {
-        //             attribute: json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<usize>().unwrap()
-        //         }
-        //     },
-        //     "Aggregate" => {
-        //         Expression::Aggregate
-        //     },
-        //     "Parameter" => {
-        //         Expression::Parameter {
-        //             predicate: json_i.as_object().unwrap().get("predicate").unwrap().as_string().unwrap().parse::<usize>().unwrap(),
-        //             parameter: json_i.as_object().unwrap().get("parameter").unwrap().as_string().unwrap().parse::<usize>().unwrap()
-        //         }
-        //     },
-        //     _ => {
-        //         Expression::Aggregate
-        //     }
-        // }
         if json_i.as_object().unwrap().contains_key("Immediate") {
             Expression::Immediate {
                 value: Value::from_json(json_i.as_object().unwrap().get("value").unwrap().clone())
             }
         } else if json_i.as_object().unwrap().contains_key("Reference") {
-            let mut attribute_t_V = json_i.as_object().unwrap().get("Reference").unwrap()
+            let attribute_t_v = json_i.as_object().unwrap().get("Reference").unwrap()
                                           .as_object().unwrap().get("attribute").unwrap()
                                           .as_string().unwrap();
 
-            let tuple_name = attribute_t_V.split("::").nth(0).unwrap();
-            let attr_name = attribute_t_V.split("::").nth(1).unwrap();
+            let tuple_name = attribute_t_v.split("::").nth(0).unwrap();
+            let attr_name = attribute_t_v.split("::").nth(1).unwrap();
 
-            // println!("tuple_name: {:?}", tuple_name);
-            // println!("attr_name: {:?}", attr_name);
-            // println!("ID: {:?}", get_tupleattr_id(tuple_name, attr_name).unwrap());
             Expression::Reference {
-                // attribute: (json_i.as_object().unwrap().get("Reference").unwrap()
-                //                  .as_object().unwrap().get("attribute").unwrap()
-                //                  .as_u64().unwrap() as usize)
                 attribute: get_tupleattr_id(tuple_name, attr_name).unwrap()
             }
         } else if json_i.as_object().unwrap().contains_key("Parameter") {
@@ -230,51 +200,35 @@ impl JsonConversion for Expression {
                   }
 
 
-
-              let mut attribute_t_V = json_i.as_object().unwrap().get("BinaryOperation").unwrap()
+              let attribute_t_v = json_i.as_object().unwrap().get("BinaryOperation").unwrap()
                                             .as_object().unwrap().get("left").unwrap()
                                             .as_object().unwrap().get("Reference").unwrap()
                                             .as_object().unwrap().get("attribute").unwrap()
                                             .as_string().unwrap();
 
-              let tuple_name = attribute_t_V.split("::").nth(0).unwrap();
-              let attr_name = attribute_t_V.split("::").nth(1).unwrap();
+              let tuple_name = attribute_t_v.split("::").nth(0).unwrap();
+              let attr_name = attribute_t_v.split("::").nth(1).unwrap();
 
 
             Expression::BinaryOperation {
                 operator: operator,
-                // left: Box::new(Expression::Reference {attribute: json_i.as_object().unwrap().get("BinaryOperation").unwrap()
-                //                                                        .as_object().unwrap().get("left").unwrap()
-                //                                                        .as_object().unwrap().get("Reference").unwrap()
-                //                                                        .as_object().unwrap().get("attribute").unwrap()
-                //                                                        .as_u64().unwrap() as usize,}),
                 left: Box::new(Expression::Reference {attribute: get_tupleattr_id(tuple_name, attr_name).unwrap(),}),
                 right: right,
-                // right: Box::new(Expression::Immediate {value: Value::Int(45),}),
             }
-            // Expression::BinaryOperation {
-            //     operator: BinaryOperator::GreaterThan,
-            //     left: Box::new(Expression::Reference {
-            //         attribute: 1,
-            //     }),
-            //     right: Box::new(Expression::Immediate {
-            //         value: Value::Int(45),
-            //     }),
-            // }
         } else {
             Expression::Reference {
                 attribute: (json_i.as_object().unwrap().get("Reference").unwrap()
                                  .as_object().unwrap().get("attribute").unwrap()
                                  .as_u64().unwrap() as usize)
+            }
         }
-    }
     }
 }
 
 impl JsonConversion for TupleType {
     fn from_json(json_i : Json) -> Self {
         println!("TupleType::from_json: {:?}\n", json_i);
-        // match json_i.as_object().unwrap().get("TupleType").unwrap().as_string().unwrap() {
+
         match json_i.as_string().unwrap() {
             "Static" => {TupleType::Static},
             "Event" => {TupleType::Event},
@@ -302,23 +256,8 @@ impl JsonConversion for TupleDeclaration {
             attributes.push(AttributeDeclaration::from_json(attribute.clone()));
         }
 
-
-        // println!("------------------------------------- a1");
-        // let x1 = TupleType::from_json(json_i.as_object().unwrap().get("ty").unwrap().clone());
-        // println!("------------------------------------- a2");
-        // println!("=== {:?}", json_i.as_object().unwrap().get("id").unwrap().as_u64().unwrap());
-        // let x2 = json_i.as_object().unwrap().get("id").unwrap().as_string().unwrap().parse::<usize>().unwrap().clone();
-        // println!("------------------------------------- a3");
-        // let x3 = String::from(json_i.as_object().unwrap().get("name").unwrap().as_string().unwrap());
-        // println!("------------------------------------- a4");
-        // let x4 = attributes.clone();
-
-
-
-
         TupleDeclaration {
             ty: TupleType::from_json(json_i.as_object().unwrap().get("ty").unwrap().clone()),
-            // id: json_i.as_object().unwrap().get("id").unwrap().as_string().unwrap().parse::<usize>().unwrap(),
             id: (json_i.as_object().unwrap().get("id").unwrap().as_u64().unwrap() as usize),
             name: String::from(json_i.as_object().unwrap().get("name").unwrap().as_string().unwrap()),
             attributes: attributes,
@@ -337,8 +276,6 @@ impl JsonConversion for EventTemplate {
         }
 
         EventTemplate {
-            // ty_id : json_i.as_object().unwrap().get("ty_id").unwrap().as_string().unwrap().parse::<usize>().unwrap(),
-            // ty_id : (json_i.as_object().unwrap().get("ty_id").unwrap().as_u64().unwrap().clone() as usize),
             ty_id : get_tuple_id(json_i.as_object().unwrap().get("ty_id").unwrap().as_string().unwrap()).unwrap(),
             attributes: expressions
         }
@@ -394,7 +331,7 @@ impl JsonConversion for Tuple {
 impl JsonConversion for EventSelection {
     fn from_json(json_i : Json) -> Self {
         println!("EventSelection::from_json: {:?}\n", json_i);
-        // match json_i.as_object().unwrap().get("EventSelection").unwrap().as_string().unwrap() {
+
         match json_i.as_string().unwrap() {
             "Each" => {EventSelection::Each},
             "First" => {EventSelection::First},
@@ -547,10 +484,6 @@ impl JsonConversion for PredicateType {
                       };
                   }
 
-
-
-
-
             PredicateType::Event {
                 selection: EventSelection::from_json(json_i.as_object().unwrap().get("Event").unwrap()
                                        .as_object().unwrap().get("selection").unwrap().clone()),
@@ -588,7 +521,6 @@ impl JsonConversion for ConstrainedTuple {
         }
 
         ConstrainedTuple {
-            // ty_id: (json_i.as_object().unwrap().get("ty_id").unwrap().as_u64().unwrap() as usize),
             ty_id: get_tuple_id(json_i.as_object().unwrap().get("ty_id").unwrap().as_string().unwrap()).unwrap(),
             constraints: expressions,
             alias: String::from(json_i.as_object().unwrap().get("alias").unwrap().as_string().unwrap()),

@@ -31,7 +31,6 @@ fn w_get_connection(call: Call) -> JsResult<JsString> {
         print!("Error processing write_status()");
     }
 
-
     Ok(JsString::new(scope, &format!("{{\"result\" : \"ok\", \"value\" : \"{}\"}}",&(uuid.to_hyphenated_string())[..])[..]).unwrap())
 }
 
@@ -39,7 +38,6 @@ fn w_init_examples(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
 
     init_examples();
-    // write_status();
 
     if write_status().is_err() {
         print!("Error processing write_status()");
@@ -48,9 +46,9 @@ fn w_init_examples(call: Call) -> JsResult<JsString> {
     Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
 }
 
+// Dummy function to test timing
 fn w_measure_time(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
-    // Dummy function to test timing
 
     Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
 }
@@ -62,7 +60,7 @@ fn w_declare_event(call: Call) -> JsResult<JsString> {
     let event_dec = Json::from_str(&str_event[..]).unwrap();//Json
 
     declare_event(event_dec);
-    // write_status();
+
     if write_status().is_err() {
         print!("Error processing write_status()");
     }
@@ -77,7 +75,7 @@ fn w_define_rule(call: Call) -> JsResult<JsString> {
     let rule_def = Json::from_str(&str_rule[..]).unwrap();//Json
 
     define_rule(rule_def);
-    // write_status();
+
     if write_status().is_err() {
         print!("Error processing write_status()");
     }
@@ -92,7 +90,6 @@ fn w_subscribe(call: Call) -> JsResult<JsString> {
 
     let subs_return = subscribe(conn_id, event_type) as i32;
 
-    // write_status();
     if write_status().is_err() {
         print!("Error processing write_status()");
     }
@@ -108,10 +105,8 @@ fn w_unsubscribe(call: Call) -> JsResult<JsString> {
     println!("{:?}", conn_id);
     println!("{:?}", subs_id);
 
-    // unsubscribe((conn_id as usize));
     unsubscribe(subs_id);
 
-    // write_status();
     if write_status().is_err() {
         print!("Error processing write_status()");
     }
@@ -123,7 +118,7 @@ fn w_status(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
 
     status();
-    // write_status();
+
     if write_status().is_err() {
         print!("Error processing write_status()");
     }
@@ -141,7 +136,7 @@ fn w_publish(call: Call) -> JsResult<JsString> {
     let event = Json::from_str(&str_event[..]).unwrap();//Json
 
     publish(conn_id, event);
-    // write_status();
+
     if write_status().is_err() {
         print!("Error processing write_status()");
     }
@@ -156,7 +151,7 @@ fn w_unknown_publish(call: Call) -> JsResult<JsString> {
     let event = Json::from_str(&str_event[..]).unwrap();//Json
 
     unknown_publish(event);
-    // write_status();
+
     if write_status().is_err() {
         print!("Error processing write_status()");
     }
@@ -171,7 +166,6 @@ fn w_get_notification(call: Call) -> JsResult<JsString> {
     let result = get_notification(conn_id);
     println!("Rust::result {:?}",result);
 
-    // write_status();
     if write_status().is_err() {
         print!("Error processing write_status()");
     }

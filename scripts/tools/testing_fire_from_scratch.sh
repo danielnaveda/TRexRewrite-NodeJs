@@ -7,9 +7,7 @@ printf "================= Testing TRex ================="; echo
 
 ../operations/7_declare_event.sh "declare fire(area:string, temp:int) with id 2"
 
-# ../operations/8_define_rule.sh "from 0[x = 0]() as SMK and last 1[y = 1](0 == x, 1 > 45) as TEMP within 5min from SMK emit 2(0 = x, 1 = y)"
 # ../operations/8_define_rule.sh "from 0[x = 0]() as smk and last 1[y = 1](0 == x, 1 > 45) as temp within 5min from smk emit 2(0 = x, 1 = y)"
-# ../operations/8_define_rule.sh "from smoke[x = 0]() as smk and last temperature[y = 1](0 == x, 1 > 45) as temp within 5min from smk emit fire(0 = x, 1 = y)"
 ../operations/8_define_rule.sh "from smoke[x = area]() as smk and last temperature[y = value](area == x, value > 45) as temp within 5min from smk emit fire(area = x, temp = y)"
 
 # Get connection ID

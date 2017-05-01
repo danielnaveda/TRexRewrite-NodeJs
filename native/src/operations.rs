@@ -57,7 +57,6 @@ pub fn get_connection(uuid: Uuid) {
 }
 
 
-
 pub fn init_examples(){
     println!("Rust::initialize()");
     let s = singleton();
@@ -221,7 +220,7 @@ pub fn define_rule(rule: Json){
 
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
-    
+
     engine.define(rule_struct);
 }
 
@@ -239,8 +238,6 @@ pub fn unsubscribe(conn_id: usize){
     let mut engine = s.inner.lock().unwrap();
 
     engine.unsubscribe(&conn_id);
-
-    // remove_queue(conn_id);
 }
 
 pub fn publish(conn_id: usize ,event: Json){
@@ -252,7 +249,6 @@ pub fn unknown_publish(event: Json){
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
 
-    // engine.publish(&Arc::new(json_to_event(event)));
     engine.publish(&Arc::new(Event::from_json(event)));
 }
 
@@ -261,7 +257,6 @@ pub fn get_notification(conn_id: String) -> Option<Arc<Event>> {
     pop_queue(conn_id)
 }
 
-// fn tuple_id(&mut self, name: &str) -> Option<usize>;
 pub fn get_tuple_id(name: &str) -> Option<usize> {
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
@@ -269,15 +264,12 @@ pub fn get_tuple_id(name: &str) -> Option<usize> {
     engine.tuple_id(name)
 }
 
-// fn tupleattr_id(&mut self, tuple_name: &str, attr_name: &str) -> Option<usize>;
 pub fn get_tupleattr_id(tuple_name: &str, attr_name: &str) -> Option<usize> {
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
 
     engine.tupleattr_id(tuple_name, attr_name)
 }
-
-
 
 pub fn status(){
     println!("Rust::status()");
