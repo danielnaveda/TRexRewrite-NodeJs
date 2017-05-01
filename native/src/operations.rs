@@ -215,12 +215,13 @@ pub fn declare_event(event: Json){
 
 pub fn define_rule(rule: Json){
     println!("Rust::defineRule(...)");
-    let s = singleton();
-    let mut engine = s.inner.lock().unwrap();
 
     let rule_struct = Rule::from_json(rule);
     println!("Rust::defineRule::rule_struct: {:?}\n",rule_struct);
 
+    let s = singleton();
+    let mut engine = s.inner.lock().unwrap();
+    
     engine.define(rule_struct);
 }
 
@@ -259,6 +260,24 @@ pub fn get_notification(conn_id: String) -> Option<Arc<Event>> {
     println!("Rust::get_notification(...)");
     pop_queue(conn_id)
 }
+
+// fn tuple_id(&mut self, name: &str) -> Option<usize>;
+pub fn get_tuple_id(name: &str) -> Option<usize> {
+    let s = singleton();
+    let mut engine = s.inner.lock().unwrap();
+
+    engine.tuple_id(name)
+}
+
+// fn tupleattr_id(&mut self, tuple_name: &str, attr_name: &str) -> Option<usize>;
+pub fn get_tupleattr_id(tuple_name: &str, attr_name: &str) -> Option<usize> {
+    let s = singleton();
+    let mut engine = s.inner.lock().unwrap();
+
+    engine.tupleattr_id(tuple_name, attr_name)
+}
+
+
 
 pub fn status(){
     println!("Rust::status()");
