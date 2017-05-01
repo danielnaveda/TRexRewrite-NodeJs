@@ -157,10 +157,21 @@ impl JsonConversion for Expression {
                 value: Value::from_json(json_i.as_object().unwrap().get("value").unwrap().clone())
             }
         } else if json_i.as_object().unwrap().contains_key("Reference") {
+            let mut attribute_t_V = json_i.as_object().unwrap().get("Reference").unwrap()
+                                          .as_object().unwrap().get("attribute").unwrap()
+                                          .as_string().unwrap();
+
+            let tuple_name = attribute_t_V.split("::").nth(0).unwrap();
+            let attr_name = attribute_t_V.split("::").nth(1).unwrap();
+
+            // println!("tuple_name: {:?}", tuple_name);
+            // println!("attr_name: {:?}", attr_name);
+            // println!("ID: {:?}", get_tupleattr_id(tuple_name, attr_name).unwrap());
             Expression::Reference {
-                attribute: (json_i.as_object().unwrap().get("Reference").unwrap()
-                                 .as_object().unwrap().get("attribute").unwrap()
-                                 .as_u64().unwrap() as usize)
+                // attribute: (json_i.as_object().unwrap().get("Reference").unwrap()
+                //                  .as_object().unwrap().get("attribute").unwrap()
+                //                  .as_u64().unwrap() as usize)
+                attribute: get_tupleattr_id(tuple_name, attr_name).unwrap()
             }
         } else if json_i.as_object().unwrap().contains_key("Parameter") {
             Expression::Parameter {
@@ -220,13 +231,24 @@ impl JsonConversion for Expression {
 
 
 
+              let mut attribute_t_V = json_i.as_object().unwrap().get("BinaryOperation").unwrap()
+                                            .as_object().unwrap().get("left").unwrap()
+                                            .as_object().unwrap().get("Reference").unwrap()
+                                            .as_object().unwrap().get("attribute").unwrap()
+                                            .as_string().unwrap();
+
+              let tuple_name = attribute_t_V.split("::").nth(0).unwrap();
+              let attr_name = attribute_t_V.split("::").nth(1).unwrap();
+
+
             Expression::BinaryOperation {
                 operator: operator,
-                left: Box::new(Expression::Reference {attribute: json_i.as_object().unwrap().get("BinaryOperation").unwrap()
-                                                                       .as_object().unwrap().get("left").unwrap()
-                                                                       .as_object().unwrap().get("Reference").unwrap()
-                                                                       .as_object().unwrap().get("attribute").unwrap()
-                                                                       .as_u64().unwrap() as usize,}),
+                // left: Box::new(Expression::Reference {attribute: json_i.as_object().unwrap().get("BinaryOperation").unwrap()
+                //                                                        .as_object().unwrap().get("left").unwrap()
+                //                                                        .as_object().unwrap().get("Reference").unwrap()
+                //                                                        .as_object().unwrap().get("attribute").unwrap()
+                //                                                        .as_u64().unwrap() as usize,}),
+                left: Box::new(Expression::Reference {attribute: get_tupleattr_id(tuple_name, attr_name).unwrap(),}),
                 right: right,
                 // right: Box::new(Expression::Immediate {value: Value::Int(45),}),
             }

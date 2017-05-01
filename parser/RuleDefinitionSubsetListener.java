@@ -9,6 +9,8 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
     // Let's use a counter to keep track of the predicate order
     private int predicate_index = 0;
     private int parameter_index = 0;
+    private String event_name = "";
+
 
     @Override
     public void enterTesla(RuleDefinitionParser.TeslaContext ctx) {
@@ -47,7 +49,7 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
       // list.add("New entry");
       //
       // ctx.CAPITAL_IDENTIFIER().getText()
-
+      event_name = ctx.getChild(0).getText();
 
       JSONObject tuple = new JSONObject();
       // tuple.put("ty_id", ctx.CAPITAL_IDENTIFIER().getText());
@@ -74,6 +76,9 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
     @Override
     public void enterEmit(RuleDefinitionParser.EmitContext ctx) {
       predicate_index = -1;
+
+      event_name = ctx.getChild(1).getText();
+
       JSONObject event_t_obj = (JSONObject) obj.get("event_template");
       // event_t_obj.put("ty_id", ctx.CAPITAL_IDENTIFIER().getText());
       if (isNumeric(ctx.getChild(1).getText())) {
@@ -154,7 +159,8 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
       if (isNumeric(ctx.getChild(2).getText())){
         attribute.put("attribute", Integer.parseInt(ctx.getChild(2).getText()));
       } else {
-        attribute.put("attribute", ctx.getChild(2).getText());
+        // attribute.put("attribute", ctx.getChild(2).getText());
+        attribute.put("attribute", event_name + "::" + ctx.getChild(2).getText());
       }
 
       JSONObject reference = new JSONObject();reference.put("Reference", attribute);
@@ -291,7 +297,8 @@ public class RuleDefinitionSubsetListener extends RuleDefinitionBaseListener {
         if (isNumeric(ctx.getChild(0).getText())) {
           reference.put("attribute", Integer.parseInt(ctx.getChild(0).getText()));
         } else {
-          reference.put("attribute", ctx.getChild(0).getText());
+          // reference.put("attribute", ctx.getChild(0).getText());
+          reference.put("attribute", event_name+"::"+ctx.getChild(0).getText());
         }
 
         JSONObject left = new JSONObject();
