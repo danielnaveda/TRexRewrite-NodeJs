@@ -46,6 +46,18 @@ fn w_init_examples(call: Call) -> JsResult<JsString> {
     Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
 }
 
+fn w_clear_status(call: Call) -> JsResult<JsString> {
+    let scope = call.scope;
+
+    // init_examples();
+
+    if write_status().is_err() {
+        print!("Error processing write_status()");
+    }
+
+    Ok(JsString::new(scope, "{\"result\" : \"ok\"}").unwrap())
+}
+
 // Dummy function to test timing
 fn w_measure_time(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
@@ -178,6 +190,7 @@ fn w_get_notification(call: Call) -> JsResult<JsString> {
 
 register_module!(m, {
     m.export("init_examples", w_init_examples);
+    m.export("clear_status", w_clear_status);
     m.export("get_connection", w_get_connection);
     m.export("declare_event", w_declare_event);
     m.export("define_rule", w_define_rule);
