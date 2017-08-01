@@ -5,7 +5,7 @@ extern crate tesla;
 extern crate trex;
 
 use rustc_serialize::json::Json;
-use chrono::{Duration, UTC};
+use chrono::{DateTime, Duration, UTC};
 use std::sync::Arc;
 use tesla::{AttributeDeclaration, Event, EventTemplate, Rule, Tuple, TupleDeclaration,TupleType};
 use tesla::expressions::{BasicType, BinaryOperator, UnaryOperator, Expression, Value};
@@ -27,6 +27,9 @@ impl JsonConversion for Event {
         let ty_id_u = ty_id.as_string().unwrap().parse::<usize>();// as usize;
         let data_a = data.as_array().unwrap();//Vec<Json>
 
+        let time_i = obj_event.get("time").unwrap();//Json
+        let time_i_s = time_i.as_string().unwrap();//String
+
         let mut vec_value: Vec<Value> = Vec::new();
 
         for data_e in data_a.iter(){//Json
@@ -42,7 +45,8 @@ impl JsonConversion for Event {
                 ty_id: ty_id_u.unwrap(),
                 data: vec_value,
             },
-            time: UTC::now(),
+            // time: UTC::now(),
+            time: time_i_s.parse::<DateTime<UTC>>().unwrap(),
         }
     }
 }
