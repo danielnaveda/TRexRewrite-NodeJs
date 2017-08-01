@@ -27,9 +27,6 @@ impl JsonConversion for Event {
         let ty_id_u = ty_id.as_string().unwrap().parse::<usize>();// as usize;
         let data_a = data.as_array().unwrap();//Vec<Json>
 
-        let time_i = obj_event.get("time").unwrap();//Json
-        let time_i_s = time_i.as_string().unwrap();//String
-
         let mut vec_value: Vec<Value> = Vec::new();
 
         for data_e in data_a.iter(){//Json
@@ -40,13 +37,25 @@ impl JsonConversion for Event {
             }
         }
 
-        Event {
-            tuple: Tuple {
-                ty_id: ty_id_u.unwrap(),
-                data: vec_value,
-            },
-            // time: UTC::now(),
-            time: time_i_s.parse::<DateTime<UTC>>().unwrap(),
+        if json_i.as_object().unwrap().contains_key("time") {
+            let time_i = obj_event.get("time").unwrap();//Json
+            let time_i_s = time_i.as_string().unwrap();//String
+
+            Event {
+                tuple: Tuple {
+                    ty_id: ty_id_u.unwrap(),
+                    data: vec_value,
+                },
+                time: time_i_s.parse::<DateTime<UTC>>().unwrap(),
+            }
+        } else {
+            Event {
+                tuple: Tuple {
+                    ty_id: ty_id_u.unwrap(),
+                    data: vec_value,
+                },
+                time: UTC::now(),
+            }
         }
     }
 }
