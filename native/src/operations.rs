@@ -229,6 +229,7 @@ pub fn subscribe(conn_id: String, event_type: usize) -> usize {
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
 
+    // TODO: use event_type in the following function to avoid subscribing to all the events
     engine.subscribe(Box::new(QueueListener{conn_id : conn_id}))
 }
 

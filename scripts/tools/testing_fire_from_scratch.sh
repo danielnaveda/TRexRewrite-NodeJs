@@ -19,10 +19,10 @@ CONN_ID=$(echo $OUTPUT | jq -r '.value')
 
 # Temperature
 curl -H "Content-Type: application/json" -X POST -d \
-"{\"tuple\": {\"ty_id\": \"1\",\"data\": [\"area_1\", \"50\"]},\"time\": \"2016-12-12T09:51:03.570254485Z\"}"\
+"{\"tuple\": {\"ty_id\": \"1\",\"data\": [\"area_1\", \"50\"]}}"\
  http://127.0.0.1:8888/events; echo; echo;
 
 # Smoke
 curl -H "Content-Type: application/json" -X POST -d \
-"{\"tuple\": {\"ty_id\": \"0\",\"data\": [\"area_1\"]},\"time\": \"2016-12-12T09:51:03.570254485Z\"}"\
+"{\"tuple\": {\"ty_id\": \"0\",\"data\": [\"area_1\"]}}"\
  http://127.0.0.1:8888/events; echo; echo;

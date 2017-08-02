@@ -10,7 +10,7 @@ public class RuleDefinition {
     RuleDefinitionLexer lexer = new RuleDefinitionLexer(input);
     CommonTokenStream tokens = new CommonTokenStream(lexer);
     RuleDefinitionParser parser = new RuleDefinitionParser(tokens);
-    ParseTree tree = parser.tesla(); // parse; start at prog
+    ParseTree tree = parser.tesla();
     ParseTreeWalker.DEFAULT.walk(new RuleDefinitionSubsetListener(), tree);
   }
 }
