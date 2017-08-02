@@ -17,8 +17,8 @@ pub struct Stack {
     idx: usize,
     tuple: TupleDeclaration,
     predicate: Predicate,
-    local_exprs: Vec<Arc<Expression>>,
-    global_exprs: Vec<Arc<Expression>>,
+    local_exprs: Vec<Expression>,
+    global_exprs: Vec<Expression>,
     timing: Timing,
     events: Vec<Arc<Event>>,
 }
@@ -53,13 +53,13 @@ impl Stack {
         event.tuple.ty_id == self.predicate.tuple.ty_id &&
         {
             let context = SimpleContext::new(&event.tuple);
-            let check_expr = |expr: &Arc<_>| context.evaluate_expression(expr).unwrap_bool();
+            let check_expr = |expr| context.evaluate_expression(expr).unwrap_bool();
             self.local_exprs.iter().all(check_expr)
         }
     }
 
     fn is_globally_satisfied(&self, context: &CompleteContext) -> bool {
-        let check_expr = |expr: &Arc<_>| context.evaluate_expression(expr).unwrap_bool();
+        let check_expr = |expr| context.evaluate_expression(expr).unwrap_bool();
         self.global_exprs.iter().all(check_expr)
     }
 }

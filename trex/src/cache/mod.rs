@@ -1,22 +1,24 @@
 pub mod ownable;
-pub mod gdfs_cache;
+pub mod gdsf_cache;
+pub mod gds1_cache;
 
 use chrono::{Duration, UTC};
 use lru_cache::LruCache;
 use lru_size_cache::{HasSize as LruHasSize, LruSizeCache};
 use owning_ref::{MutexGuardRef, MutexGuardRefMut};
-use self::gdfs_cache::{GDSFCache, HasCost, HasSize};
+use self::gds1_cache::GDS1Cache;
+use self::gdsf_cache::{GDSFCache, HasCost, HasSize};
 use self::ownable::Ownable;
 use std::borrow::Borrow;
-use std::collections::hash_map::{Entry, HashMap, RandomState};
-use std::hash::{BuildHasher, Hash, Hasher, SipHasher};
+use std::collections::hash_map::{DefaultHasher, Entry, HashMap, RandomState};
+use std::hash::{BuildHasher, Hash, Hasher};
 use std::marker::PhantomData;
 use std::ops::Deref;
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 fn hash<T: Hash>(t: &T) -> u64 {
-    let mut s = SipHasher::new();
+    let mut s = DefaultHasher::new();
     t.hash(&mut s);
     s.finish()
 }
@@ -52,45 +54,33 @@ impl<'a, C: Cache + ?Sized + 'a> Deref for FetchedValue<'a, C> {
 #[derive(Default)]
 pub struct HitMissCounter {
     hit: AtomicUsize,
-    ind_hit: AtomicUsize,
     miss: AtomicUsize,
-    last: AtomicUsize,
     hit_time: AtomicUsize,
     miss_time: AtomicUsize,
 }
 
 impl HitMissCounter {
-    pub fn hit(&self, hash: u64, time: Duration) {
-        if hash as usize != self.last.load(Ordering::SeqCst) {
-            self.ind_hit.fetch_add(1, Ordering::SeqCst);
-        }
+    pub fn hit(&self, time: Duration) {
         self.hit.fetch_add(1, Ordering::SeqCst);
         self.hit_time.fetch_add(time.num_nanoseconds().unwrap() as usize, Ordering::SeqCst);
-        self.last.store(hash as usize, Ordering::SeqCst)
     }
-    pub fn miss(&self, hash: u64, time: Duration) {
+    pub fn miss(&self, time: Duration) {
         self.miss.fetch_add(1, Ordering::SeqCst);
         self.miss_time.fetch_add(time.num_nanoseconds().unwrap() as usize, Ordering::SeqCst);
-        self.last.store(hash as usize, Ordering::SeqCst)
     }
 }
 
 impl Drop for HitMissCounter {
     fn drop(&mut self) {
         let hit = self.hit.load(Ordering::SeqCst);
-        let ind_hit = self.ind_hit.load(Ordering::SeqCst);
         let miss = self.miss.load(Ordering::SeqCst);
         let ratio = (miss as f32 / (hit + miss) as f32) * 100.0;
-        let ind_ratio = (miss as f32 / (ind_hit + miss) as f32) * 100.0;
         let avg_hit_time = self.hit_time.load(Ordering::SeqCst) / (hit + 1);
         let avg_miss_time = self.miss_time.load(Ordering::SeqCst) / (miss + 1);
-        println!("Fetcher stats: {} hits, {} ind_hit, {} miss ({}%, {}%), avg hit/miss time {}ns \
-                  {}ns",
+        println!("Fetcher stats: {} hits, {} miss ({}%), avg hit/miss time {}ns {}ns",
                  hit,
-                 ind_hit,
                  miss,
                  ratio,
-                 ind_ratio,
                  avg_hit_time,
                  avg_miss_time);
     }
@@ -137,21 +127,24 @@ impl<C: ?Sized, F> CachedFetcher<C, F>
           F: Fetcher<C::K, C::V>
 {
     pub fn fetch<Q>(&self, key: Q) -> FetchedValue<C>
-        where Q: Borrow<C::K> + Ownable<C::K> + Hash
+        where Q: Borrow<C::K> + Ownable<C::K>
     {
         let start = UTC::now();
         let mut cache = MutexGuardRefMut::new(self.cache.lock().unwrap());
         if cache.contains(key.borrow()) {
-            self.stat.hit(hash(&key), UTC::now() - start);
-            FetchedValue::Cached(cache.map(|cache| cache.fetch(key.borrow()).unwrap()).into())
+            let res = FetchedValue::Cached(cache.map(|cache| cache.fetch(key.borrow()).unwrap())
+                .into());
+            self.stat.hit(UTC::now() - start);
+            res
         } else {
             drop(cache);
             let value = self.fetcher.fetch(key.borrow());
-            self.stat.miss(hash(&key), UTC::now() - start);
-            MutexGuardRefMut::new(self.cache.lock().unwrap())
+            let res = MutexGuardRefMut::new(self.cache.lock().unwrap())
                 .try_map(|cache| cache.store(key.into_owned(), value))
                 .map(FetchedValue::Cached)
-                .unwrap_or_else(FetchedValue::Uncached)
+                .unwrap_or_else(FetchedValue::Uncached);
+            self.stat.miss(UTC::now() - start);
+            res
         }
     }
 }
@@ -223,61 +216,70 @@ impl<K, V, S> Cache for LruSizeCache<K, V, S>
     fn remove(&mut self, k: &Self::K) -> Option<Self::V> { LruSizeCache::remove(self, k) }
 }
 
-pub struct ModHasher<H: Hasher> {
-    hasher: H,
+pub struct CollisionCache<K, V, S = RandomState> {
+    map: HashMap<u64, (K, V), S>,
     modulus: u64,
 }
 
-impl<H: Hasher> Hasher for ModHasher<H> {
-    fn finish(&self) -> u64 { self.hasher.finish() % self.modulus }
-    fn write(&mut self, bytes: &[u8]) { self.hasher.write(bytes) }
-
-    fn write_u8(&mut self, i: u8) { self.hasher.write_u8(i) }
-    fn write_u16(&mut self, i: u16) { self.hasher.write_u16(i) }
-    fn write_u32(&mut self, i: u32) { self.hasher.write_u32(i) }
-    fn write_u64(&mut self, i: u64) { self.hasher.write_u64(i) }
-    fn write_usize(&mut self, i: usize) { self.hasher.write_usize(i) }
-    fn write_i8(&mut self, i: i8) { self.hasher.write_i8(i) }
-    fn write_i16(&mut self, i: i16) { self.hasher.write_i16(i) }
-    fn write_i32(&mut self, i: i32) { self.hasher.write_i32(i) }
-    fn write_i64(&mut self, i: i64) { self.hasher.write_i64(i) }
-    fn write_isize(&mut self, i: isize) { self.hasher.write_isize(i) }
-}
-
-pub struct ModBuildHasher<S: BuildHasher = RandomState> {
-    hash_builder: S,
-    modulus: u64,
-}
-
-impl<S: BuildHasher + Default> ModBuildHasher<S> {
+impl<K, V, S> CollisionCache<K, V, S>
+    where K: Eq + Hash,
+          S: BuildHasher + Default
+{
     pub fn new(modulus: u64) -> Self {
-        ModBuildHasher {
-            hash_builder: S::default(),
+        CollisionCache {
+            map: HashMap::default(),
             modulus: modulus,
         }
     }
 }
 
-impl<S: BuildHasher> ModBuildHasher<S> {
-    pub fn with_modulus_and_hasher(modulus: u64, hash_builder: S) -> Self {
-        ModBuildHasher {
-            hash_builder: hash_builder,
+impl<K, V, S> CollisionCache<K, V, S>
+    where K: Eq + Hash,
+          S: BuildHasher
+{
+    pub fn with_hasher(modulus: u64, hash_builder: S) -> Self {
+        CollisionCache {
+            map: HashMap::with_hasher(hash_builder),
             modulus: modulus,
         }
     }
 }
 
-impl<S: BuildHasher> BuildHasher for ModBuildHasher<S> {
-    type Hasher = ModHasher<S::Hasher>;
-    fn build_hasher(&self) -> Self::Hasher {
-        ModHasher {
-            hasher: self.hash_builder.build_hasher(),
-            modulus: self.modulus,
+impl<K, V, S> Cache for CollisionCache<K, V, S>
+    where K: Eq + Hash,
+          S: BuildHasher
+{
+    type K = K;
+    type V = V;
+    fn store(&mut self, k: Self::K, v: Self::V) -> Result<&Self::V, Self::V> {
+        match self.map.entry(hash(&k) % self.modulus) {
+            Entry::Occupied(mut entry) => {
+                entry.insert((k, v));
+                Ok(&entry.into_mut().1)
+            }
+            Entry::Vacant(entry) => Ok(&entry.insert((k, v)).1),
+        }
+    }
+    fn fetch(&mut self, k: &Self::K) -> Option<&Self::V> {
+        self.map
+            .get(&(hash(&k) % self.modulus))
+            .and_then(|it| { if it.0 == *k { Some(&it.1) } else { None } })
+    }
+    fn contains(&mut self, k: &Self::K) -> bool {
+        match self.map.entry(hash(&k) % self.modulus) {
+            Entry::Occupied(mut entry) => entry.get().0 == *k,
+            Entry::Vacant(entry) => false,
+        }
+    }
+    fn remove(&mut self, k: &Self::K) -> Option<Self::V> {
+        match self.map.entry(hash(&k) % self.modulus) {
+            Entry::Occupied(mut entry) => {
+                if entry.get().0 == *k { Some(entry.remove().1) } else { None }
+            }
+            Entry::Vacant(entry) => None,
         }
     }
 }
-
-pub type CollisionCache<K, V, S = RandomState> = HashMap<K, V, ModBuildHasher<S>>;
 
 impl<K, V, S> Cache for GDSFCache<K, V, S>
     where K: Eq + Hash,
@@ -290,4 +292,17 @@ impl<K, V, S> Cache for GDSFCache<K, V, S>
     fn fetch(&mut self, k: &Self::K) -> Option<&Self::V> { self.get(k) }
     fn contains(&mut self, k: &Self::K) -> bool { self.contains_key(k) }
     fn remove(&mut self, k: &Self::K) -> Option<Self::V> { GDSFCache::remove(self, k) }
+}
+
+impl<K, V, S> Cache for GDS1Cache<K, V, S>
+    where K: Eq + Hash,
+          V: HasSize + HasCost,
+          S: BuildHasher
+{
+    type K = K;
+    type V = V;
+    fn store(&mut self, k: Self::K, v: Self::V) -> Result<&Self::V, Self::V> { self.insert(k, v) }
+    fn fetch(&mut self, k: &Self::K) -> Option<&Self::V> { self.get(k) }
+    fn contains(&mut self, k: &Self::K) -> bool { self.contains_key(k) }
+    fn remove(&mut self, k: &Self::K) -> Option<Self::V> { GDS1Cache::remove(self, k) }
 }

@@ -5,8 +5,8 @@ extern crate trex;
 
 use chrono::{Duration, UTC};
 use std::sync::Arc;
-use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Rule, Tuple, TupleDeclaration,
-            TupleType};
+use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Rule, SubscrFilter, Tuple,
+            TupleDeclaration, TupleType};
 use tesla::expressions::{BasicType, BinaryOperator, Expression, Value};
 use tesla::predicates::{ConstrainedTuple, EventSelection, ParameterDeclaration, Predicate,
                         PredicateType, Timing, TimingBound};
@@ -90,9 +90,7 @@ fn main() {
                     parameters: vec![
                         ParameterDeclaration {
                             name: "x".to_owned(),
-                            expression: Arc::new(Expression::Reference {
-                                attribute: 0,
-                            }),
+                            expression: Expression::Reference { attribute: 0 },
                         },
                     ],
                 },
@@ -108,9 +106,9 @@ fn main() {
                     parameters: vec![
                         ParameterDeclaration {
                             name: "y".to_owned(),
-                            expression: Arc::new(Expression::Reference {
+                            expression: Expression::Reference {
                                 attribute: 1,
-                            }),
+                            },
                         },
                     ],
                     timing: Timing {
@@ -123,7 +121,7 @@ fn main() {
                 tuple: ConstrainedTuple {
                     ty_id: 1,
                     constraints: vec![
-                        Arc::new(Expression::BinaryOperation {
+                        Expression::BinaryOperation {
                             operator: BinaryOperator::Equal,
                             left: Box::new(Expression::Reference {
                                 attribute: 0,
@@ -132,8 +130,8 @@ fn main() {
                                 predicate: 0,
                                 parameter: 0,
                             }),
-                        }),
-                        Arc::new(Expression::BinaryOperation {
+                        },
+                        Expression::BinaryOperation {
                             operator: BinaryOperator::GreaterThan,
                             left: Box::new(Expression::Reference {
                                 attribute: 1,
@@ -141,7 +139,7 @@ fn main() {
                             right: Box::new(Expression::Immediate {
                                 value: Value::Int(45),
                             }),
-                        }),
+                        },
                     ],
                     alias: "temp".to_owned(),
                 },
@@ -166,7 +164,7 @@ fn main() {
 
     // We subscribe a listener to receive every event,
     // the `DebugListener` prints to stdout each event.
-    engine.subscribe(Box::new(DebugListener));
+    engine.subscribe(SubscrFilter::Any, Box::new(DebugListener));
 
     // Now we publish a sequence of Events
     //

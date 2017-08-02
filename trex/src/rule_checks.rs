@@ -1,7 +1,6 @@
 use FnvHashMap;
 use expressions::inference::{CurrentType, InferenceContext};
 use linear_map::LinearMap;
-use std::sync::Arc;
 use tesla::{EventTemplate, Rule, TupleDeclaration, TupleType};
 use tesla::expressions::*;
 use tesla::predicates::*;
@@ -39,7 +38,7 @@ mod aggregate {
     }
 }
 
-fn type_check_constraints<'a>(constraints: &'a [Arc<Expression>],
+fn type_check_constraints<'a>(constraints: &'a [Expression],
                               ctx: InferenceContext<'a>)
                               -> Result<InferenceContext<'a>, String> {
     constraints.iter().fold(Ok(ctx), |ctx, expr| {

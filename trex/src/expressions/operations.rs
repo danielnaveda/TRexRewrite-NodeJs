@@ -47,7 +47,7 @@ pub mod unary {
 }
 
 pub mod binary {
-    use std::f32::EPSILON;
+    use std::f64::EPSILON;
     use tesla::expressions::{BasicType, BinaryOperator, Value};
 
     fn get_type_arithmetic(left: &BasicType, right: &BasicType) -> Result<BasicType, String> {

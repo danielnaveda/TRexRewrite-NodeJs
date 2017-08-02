@@ -5,7 +5,7 @@ use tesla::expressions::*;
 
 fn cast(value: &Value, ty: &BasicType) -> Value {
     match (ty, value) {
-        (&BasicType::Float, &Value::Int(val)) => Value::Float(val as f32),
+        (&BasicType::Float, &Value::Int(val)) => Value::Float(val as f64),
         _ => panic!("Wrong casting"),
     }
 }

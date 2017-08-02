@@ -46,9 +46,7 @@ extern crate trex;
 use chrono::{Duration, UTC};
 use clap::{App, Arg};
 use rand::{Rng, SeedableRng, StdRng};
-use rand::distributions::{IndependentSample, Sample};
-use rand::distributions::exponential::Exp;
-use rand::distributions::normal::Normal;
+use rand::distributions::{Exp, IndependentSample, Normal, Range, Sample};
 use regex::Regex;
 use rusqlite::Connection;
 use rusqlite::types::ToSql;
@@ -58,8 +56,8 @@ use std::ops::Add;
 use std::sync::Arc;
 use std::sync::mpsc::sync_channel;
 use std::thread;
-use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Rule, Tuple, TupleDeclaration,
-            TupleType};
+use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Rule, SubscrFilter, Tuple,
+            TupleDeclaration, TupleType};
 use tesla::expressions::*;
 use tesla::predicates::*;
 use trex::*;
@@ -69,6 +67,7 @@ use trex::stack::StackProvider;
 enum QueryDistribution {
     Normal(Normal),
     Exp(Exp),
+    Uniform(Range<i64>),
 }
 
 impl fmt::Debug for QueryDistribution {
@@ -76,24 +75,23 @@ impl fmt::Debug for QueryDistribution {
         match *self {
             QueryDistribution::Normal(..) => write!(f, "Normal"),
             QueryDistribution::Exp(..) => write!(f, "Exp"),
+            QueryDistribution::Uniform(..) => write!(f, "Uniform"),
         }
     }
 }
 
-impl Sample<i32> for QueryDistribution {
-    fn sample<R: Rng>(&mut self, rng: &mut R) -> i32 {
-        match *self {
-            QueryDistribution::Normal(ref mut distr) => distr.sample(rng) as i32,
-            QueryDistribution::Exp(ref mut distr) => distr.sample(rng) as i32,
-        }
+impl Sample<i64> for QueryDistribution {
+    fn sample<R: Rng>(&mut self, rng: &mut R) -> i64 {
+        self.ind_sample(rng)
     }
 }
 
-impl IndependentSample<i32> for QueryDistribution {
-    fn ind_sample<R: Rng>(&self, rng: &mut R) -> i32 {
+impl IndependentSample<i64> for QueryDistribution {
+    fn ind_sample<R: Rng>(&self, rng: &mut R) -> i64 {
         match *self {
-            QueryDistribution::Normal(ref distr) => distr.ind_sample(rng) as i32,
-            QueryDistribution::Exp(ref distr) => distr.ind_sample(rng) as i32,
+            QueryDistribution::Normal(ref distr) => distr.ind_sample(rng) as i64,
+            QueryDistribution::Exp(ref distr) => distr.ind_sample(rng) as i64,
+            QueryDistribution::Uniform(ref distr) => distr.ind_sample(rng),
         }
     }
 }
@@ -122,6 +120,7 @@ struct Config {
     cache_type: CacheType,
     query_distribution: QueryDistribution,
     matching_rows: usize,
+    query_dependencies: usize,
     static_prob: f32,
 }
 
@@ -177,11 +176,17 @@ fn generate_declarations<R: Rng>(rng: &mut R, cfg: &Config) -> Vec<TupleDeclarat
                 ty: BasicType::Int,
             }
         })
-        .collect();
+        .collect::<Vec<_>>();
     let static_decl = TupleDeclaration {
         ty: TupleType::Static,
         id: 0,
         name: "test".to_owned(),
+        attributes: attributes.clone(),
+    };
+    let alternative_decl = TupleDeclaration {
+        ty: TupleType::Event,
+        id: (cfg.num_def + 1) * 1000,
+        name: "tail".to_owned(),
         attributes: attributes,
     };
     (0..cfg.num_def)
@@ -191,37 +196,34 @@ fn generate_declarations<R: Rng>(rng: &mut R, cfg: &Config) -> Vec<TupleDeclarat
                 ty: TupleType::Event,
                 id: id,
                 name: format!("event{}", id),
-                attributes: Vec::new(),
-            };
-            let attrs = (0..3)
-                .map(|j| {
+                attributes: vec![
                     AttributeDeclaration {
-                        name: format!("attr{}", j),
+                        name: "attr".to_owned(),
                         ty: BasicType::Int,
-                    }
-                })
-                .collect();
-            let root_decl = TupleDeclaration {
-                ty: TupleType::Event,
-                id: id * 1000,
-                name: format!("event{}", id * 1000),
-                attributes: attrs,
+                    },
+                ],
             };
-            let mid_decls = (1..cfg.num_pred).map(move |j| {
-                let attr = AttributeDeclaration {
-                    name: "attr".to_owned(),
-                    ty: BasicType::Int,
-                };
+            let mid_decls = (0..cfg.num_pred).map(move |j| {
+                let num_attr = if j == cfg.num_pred - 1 { 3 } else { 2 };
+                let attrs = (0..num_attr)
+                    .map(|j| {
+                        AttributeDeclaration {
+                            name: format!("attr{}", j),
+                            ty: BasicType::Int,
+                        }
+                    })
+                    .collect();
                 TupleDeclaration {
                     ty: TupleType::Event,
                     id: id * 1000 + j,
                     name: format!("event{}", id * 1000 + j),
-                    attributes: vec![attr],
+                    attributes: attrs,
                 }
             });
-            once(output_decl).chain(once(root_decl)).chain(mid_decls)
+            once(output_decl).chain(mid_decls)
         })
         .chain(once(static_decl))
+        .chain(once(alternative_decl))
         .collect()
 }
 
@@ -229,63 +231,100 @@ fn generate_rules<R: Rng>(rng: &mut R, cfg: &Config) -> Vec<Rule> {
     (0..cfg.num_rules)
         .map(|i| {
             let id = i % cfg.num_def + 1;
-            let constraint = Arc::new(Expression::BinaryOperation {
+            let constraint = Expression::BinaryOperation {
                 operator: BinaryOperator::Equal,
                 left: Box::new(Expression::Reference { attribute: 0 }),
                 right: Box::new(Expression::Immediate { value: 1.into() }),
-            });
-            let root_parameter1 = ParameterDeclaration {
-                name: "x".to_owned(),
-                expression: Arc::new(Expression::Reference { attribute: 1 }),
             };
-            let root_parameter2 = ParameterDeclaration {
-                name: "y".to_owned(),
-                expression: Arc::new(Expression::Reference { attribute: 2 }),
-            };
+
             let root_pred = Predicate {
-                ty: PredicateType::Trigger { parameters: vec![root_parameter1, root_parameter2] },
+                ty: PredicateType::Trigger {
+                    parameters: vec![
+                        ParameterDeclaration {
+                            name: "param0x1".to_owned(),
+                            expression: Expression::Reference { attribute: 1 },
+                        },
+                    ],
+                },
                 tuple: ConstrainedTuple {
                     ty_id: id * 1000,
                     constraints: vec![constraint.clone()],
                     alias: format!("alias{}", id * 1000),
                 },
             };
+
             let static_pred = if rng.next_f32() <= cfg.static_prob {
-                let static_constr1 = Arc::new(Expression::BinaryOperation {
+                let static_constr1 = Expression::BinaryOperation {
                     operator: BinaryOperator::GreaterEqual,
                     left: Box::new(Expression::Reference { attribute: 0 }),
                     right: Box::new(Expression::Parameter {
-                        predicate: 0,
+                        predicate: cfg.num_pred - 1,
                         parameter: 0,
                     }),
-                });
-                let static_constr2 = Arc::new(Expression::BinaryOperation {
+                };
+                let static_constr2 = Expression::BinaryOperation {
                     operator: BinaryOperator::LowerThan,
                     left: Box::new(Expression::Reference { attribute: 0 }),
                     right: Box::new(Expression::Parameter {
-                        predicate: 0,
+                        predicate: cfg.num_pred - 1,
                         parameter: 1,
                     }),
+                };
+                let other_constr = (1..cfg.query_dependencies).map(|j| {
+                    Expression::BinaryOperation {
+                        operator: BinaryOperator::LowerThan,
+                        left: Box::new(Expression::Parameter {
+                            predicate: cfg.num_pred - 1 - j,
+                            parameter: 0,
+                        }),
+                        right: Box::new(Expression::Immediate { value: 1_000_000_000.into() }),
+                    }
                 });
                 let parameters = (0..cfg.table_columns)
-                    .map(|i| {
+                    .map(|j| {
                         ParameterDeclaration {
-                            name: format!("z{}", i),
-                            expression: Arc::new(Expression::Reference { attribute: i }),
+                            name: format!("param{}x{}", cfg.num_pred, j),
+                            expression: Expression::Reference { attribute: j },
                         }
                     })
                     .collect();
-                Some(Predicate {
+                Predicate {
                     ty: PredicateType::UnorderedStatic { parameters: parameters },
                     tuple: ConstrainedTuple {
                         ty_id: 0,
-                        constraints: vec![static_constr1, static_constr2],
+                        constraints: once(static_constr1)
+                            .chain(once(static_constr2))
+                            .chain(other_constr)
+                            .collect(),
                         alias: format!("alias{}", 0),
                     },
-                })
+                }
             } else {
-                None
+                let parameters = (0..cfg.table_columns)
+                    .map(|j| {
+                        ParameterDeclaration {
+                            name: format!("param{}x{}", cfg.num_pred, j),
+                            expression: Expression::Reference { attribute: j },
+                        }
+                    })
+                    .collect();
+                Predicate {
+                    ty: PredicateType::Event {
+                        selection: EventSelection::Each,
+                        parameters: parameters,
+                        timing: Timing {
+                            upper: 0,
+                            bound: TimingBound::Within { window: Duration::days(1000) },
+                        },
+                    },
+                    tuple: ConstrainedTuple {
+                        ty_id: (cfg.num_def + 1) * 1000,
+                        constraints: vec![],
+                        alias: "tail".to_owned(),
+                    },
+                }
             };
+
             let mid_preds = (1..cfg.num_pred).map(|j| {
                 let rand = rng.next_f32();
                 let selection = if rand < cfg.each_prob {
@@ -301,10 +340,19 @@ fn generate_rules<R: Rng>(rng: &mut R, cfg: &Config) -> Vec<Rule> {
                     upper: j - 1,
                     bound: TimingBound::Within { window: Duration::milliseconds(millis) },
                 };
+                let num_param = if j == cfg.num_pred - 1 { 2 } else { 1 };
+                let params = (0..num_param)
+                    .map(|k| {
+                        ParameterDeclaration {
+                            name: format!("param{}x{}", j, k),
+                            expression: Expression::Reference { attribute: k + 1 },
+                        }
+                    })
+                    .collect();
                 Predicate {
                     ty: PredicateType::Event {
                         selection: selection,
-                        parameters: Vec::new(),
+                        parameters: params,
                         timing: timing,
                     },
                     tuple: ConstrainedTuple {
@@ -315,10 +363,15 @@ fn generate_rules<R: Rng>(rng: &mut R, cfg: &Config) -> Vec<Rule> {
                 }
             });
 
-            let predicates = once(root_pred).chain(mid_preds).chain(static_pred).collect();
+            let predicates = once(root_pred).chain(mid_preds).chain(once(static_pred)).collect();
             let event_template = EventTemplate {
                 ty_id: id,
-                attributes: Vec::new(),
+                attributes: vec![
+                    Expression::Parameter {
+                        predicate: cfg.num_pred,
+                        parameter: 0,
+                    },
+                ],
             };
             let consuming = if cfg.consuming { vec![1] } else { Vec::new() };
             Rule {
@@ -336,24 +389,21 @@ fn generate_events<R: Rng>(rng: &mut R, cfg: &Config) -> Vec<Event> {
         .map(|_| {
             let def = rng.gen_range(0, cfg.num_def) + 1;
             let state = rng.gen_range(0, cfg.num_pred);
-            if state == 0 {
-                let lower_bound = cfg.query_distribution.ind_sample(rng);
-                let upper_bound = lower_bound + cfg.matching_rows as i32 * rng.gen_range(1, 4) / 2;
-                Event {
-                    tuple: Tuple {
-                        ty_id: def * 1000,
-                        data: vec![Value::Int(1), lower_bound.into(), upper_bound.into()],
-                    },
-                    time: UTC::now(),
-                }
+
+            let random = cfg.query_distribution.ind_sample(rng);
+            let upper_bound = if state == (cfg.num_pred - 1) {
+                let mut pseudo_rng = StdRng::from_seed(&[random as usize]);
+                Some(random + pseudo_rng.gen_range(3, cfg.matching_rows as i64 * 2))
             } else {
-                Event {
-                    tuple: Tuple {
-                        ty_id: def * 1000 + state,
-                        data: vec![Value::Int(1)],
-                    },
-                    time: UTC::now(),
-                }
+                None
+            };
+
+            Event {
+                tuple: Tuple {
+                    ty_id: def * 1000 + state,
+                    data: once(1).chain(once(random)).chain(upper_bound).map(From::from).collect(),
+                },
+                time: UTC::now(),
             }
         })
         .collect()
@@ -383,9 +433,20 @@ fn execute_bench<R: Rng>(rng: &mut R, cfg: &Config) {
         engine.define(rule);
     }
 
+    let tail = Event {
+        tuple: Tuple {
+            ty_id: (cfg.num_def + 1) * 1000,
+            data: repeat(1.into()).take(cfg.table_columns).collect(),
+        },
+        time: UTC::now(),
+    };
+    for _ in 0..cfg.matching_rows {
+        engine.publish(&Arc::new(tail.clone()));
+    }
+
     use trex::listeners::{CountListener, DebugListener};
     // engine.subscribe(Box::new(DebugListener));
-    engine.subscribe(Box::new(CountListener {
+    engine.subscribe(SubscrFilter::Any, Box::new(CountListener {
         count: 0,
         duration: cfg.num_events / cfg.evts_per_sec,
     }));
@@ -487,15 +548,19 @@ fn main() {
         .arg(Arg::with_name("cache_type")
             .long("cache_type")
             .value_name("VAL")
-            .help("DUMMY|LRU|LRU_SIZE|COLLISION|GDSF")
+            .help("DUMMY|LRU|LRU_SIZE|COLLISION|GDSF|GDS1|PERFECT")
             .takes_value(true))
         .arg(Arg::with_name("query_distribution")
             .long("query_distribution")
             .value_name("VAL")
-            .help("Normal(sigma)|Exp(lambda)")
+            .help("Normal(sigma)|Exp(lambda)|Uniform(range)")
             .takes_value(true))
         .arg(Arg::with_name("matching_rows")
             .long("matching_rows")
+            .value_name("INT")
+            .takes_value(true))
+        .arg(Arg::with_name("query_dependencies")
+            .long("query_dependencies")
             .value_name("INT")
             .takes_value(true))
         .arg(Arg::with_name("static_prob")
@@ -548,17 +613,24 @@ fn main() {
                     "COLLISION" => CacheType::Collision,
                     "LRU_SIZE" => CacheType::LruSize,
                     "GDSF" => CacheType::Gdfs,
+                    "GDS1" => CacheType::Gdf1,
+                    "PERFECT" => CacheType::Perfect,
                     _ => panic!("Unexpected cache type"),
                 }
             })
             .unwrap_or(CacheType::Lru),
         query_distribution: matches.value_of("query_distribution")
             .map(|it| {
-                let cap = Regex::new("(Normal|Exp)\\((.+)\\)").unwrap().captures(it).unwrap();
-                let par = cap.at(2).unwrap().parse().unwrap();
+                let cap =
+                    Regex::new("(Normal|Exp|Uniform)\\((.+)\\)").unwrap().captures(it).unwrap();
+                let par: f64 = cap.at(2).unwrap().parse().unwrap();
                 match cap.at(1).unwrap() {
                     "Normal" => QueryDistribution::Normal(Normal::new(0.0, par)),
                     "Exp" => QueryDistribution::Exp(Exp::new(par)),
+                    "Uniform" => {
+                        QueryDistribution::Uniform(Range::new((-par / 2.0) as i64,
+                                                              (par / 2.0) as i64))
+                    }
                     _ => panic!("Unexpected distribution type"),
                 }
             })
@@ -566,6 +638,9 @@ fn main() {
         matching_rows: matches.value_of("matching_rows")
             .map(|it| it.parse().unwrap())
             .unwrap_or(10),
+        query_dependencies: matches.value_of("query_dependencies")
+            .map(|it| it.parse().unwrap())
+            .unwrap_or(1),
         static_prob: matches.value_of("static_prob").map(|it| it.parse().unwrap()).unwrap_or(0.2),
     };
 

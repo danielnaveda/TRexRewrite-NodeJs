@@ -1,9 +1,9 @@
 mod query_builder;
 
 use NodeProvider;
-use cache::{Cache, CachedFetcher, CollisionCache, DummyCache, Fetcher, HitMissCounter,
-            ModBuildHasher};
-use cache::gdfs_cache::{GDSFCache, HasCost, HasSize};
+use cache::{Cache, CachedFetcher, CollisionCache, DummyCache, Fetcher, HitMissCounter};
+use cache::gds1_cache::GDS1Cache;
+use cache::gdsf_cache::{GDSFCache, HasCost, HasSize};
 use chrono::UTC;
 use expressions::evaluation::*;
 use linear_map::LinearMap;
@@ -15,6 +15,7 @@ use rule_processor::*;
 use rusqlite::Row;
 use rusqlite::types::{ToSql, Value as SqlValue};
 use self::query_builder::SqlContext;
+use std::collections::HashMap;
 use std::iter;
 use std::sync::{Arc, Mutex};
 use std::usize;
@@ -49,10 +50,8 @@ impl HasCost for CacheEntry {
 impl HasSize for CacheEntry {
     fn size(&self) -> usize {
         match self.value {
-            CacheEntryValue::Values(_, ref val) => val.len(),
-            CacheEntryValue::Aggr(..) => 1,
-            CacheEntryValue::Count(..) => 1,
-            CacheEntryValue::Exists(..) => 1,
+            CacheEntryValue::Values(_, ref val) => val.len() + 1,
+            _ => 1,
         }
     }
 }
@@ -221,8 +220,8 @@ fn to_sql_ref(value: &SqlValue) -> &ToSql {
 
 fn get_res(row: &Row, i: i32, ty: &BasicType) -> Value {
     match *ty {
-        BasicType::Int => Value::Int(row.get::<_, i64>(i) as i32),
-        BasicType::Float => Value::Float(row.get::<_, f64>(i) as f32),
+        BasicType::Int => Value::Int(row.get::<_, i64>(i)),
+        BasicType::Float => Value::Float(row.get::<_, f64>(i)),
         BasicType::Bool => Value::Bool(row.get::<_, i64>(i) != 0),
         BasicType::Str => Value::Str(row.get(i)),
     }
@@ -273,6 +272,8 @@ pub enum CacheType {
     Lru,
     LruSize,
     Gdfs,
+    Gdf1,
+    Perfect,
 }
 
 #[derive(Debug, Clone)]
@@ -290,13 +291,13 @@ fn make_cache(ty: CacheType,
     match ty {
         CacheType::Dummy => Arc::new(Mutex::new(DummyCache::default())),
         CacheType::Collision => {
-            let build_hasher: ModBuildHasher = ModBuildHasher::new(capacity as u64);
-            let cache = CollisionCache::with_capacity_and_hasher(capacity, build_hasher);
-            Arc::new(Mutex::new(cache))
+            Arc::new(Mutex::<CollisionCache<_, _>>::new(CollisionCache::new(capacity as u64)))
         }
         CacheType::Lru => Arc::new(Mutex::new(LruCache::new(capacity))),
         CacheType::LruSize => Arc::new(Mutex::new(LruSizeCache::new(capacity))),
         CacheType::Gdfs => Arc::new(Mutex::<GDSFCache<_, _>>::new(GDSFCache::new(capacity))),
+        CacheType::Gdf1 => Arc::new(Mutex::<GDS1Cache<_, _>>::new(GDS1Cache::new(capacity))),
+        CacheType::Perfect => Arc::new(Mutex::new(HashMap::new())),
     }
 }
 

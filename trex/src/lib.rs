@@ -19,6 +19,7 @@ mod rule_checks;
 mod cache;
 pub mod listeners;
 
+use expressions::evaluation::{EvaluationContext, SimpleContext};
 use fnv::FnvHasher;
 use linear_map::LinearMap;
 use rule_checks::check_rule;
@@ -29,7 +30,7 @@ use std::hash::BuildHasherDefault;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::mpsc::{Receiver, Sender, channel};
-use tesla::{Engine, Event, Listener, Rule, TupleDeclaration};
+use tesla::{Engine, Event, Listener, Rule, SubscrFilter, TupleDeclaration};
 use tesla::expressions::BasicType;
 use tesla::predicates::Predicate;
 use threadpool::ThreadPool;
@@ -86,7 +87,7 @@ pub struct TRex {
     tuples: FnvHashMap<usize, TupleDeclaration>,
     provider: GeneralProvider,
     reverse_index: FnvHashMap<usize, Vec<Arc<Mutex<RuleStacks>>>>,
-    listeners: BTreeMap<usize, Box<Listener>>,
+    listeners: BTreeMap<usize, (SubscrFilter, Box<Listener>)>,
     last_id: usize,
     threadpool: ThreadPool,
     channel: (Sender<Vec<Arc<Event>>>, Receiver<Vec<Arc<Event>>>),
@@ -103,9 +104,6 @@ impl TRex {
             threadpool: ThreadPool::new(threads),
             channel: channel(),
         }
-    }
-    pub fn get_last_id(&self) -> usize {
-        self.last_id
     }
 }
 
@@ -128,7 +126,7 @@ impl Engine for TRex {
                 }
             }
         }
-        None        
+        None
     }
     fn declare(&mut self, tuple: TupleDeclaration) {
         if let Entry::Vacant(entry) = self.tuples.entry(tuple.id) {
@@ -153,8 +151,23 @@ impl Engine for TRex {
 
     }
     fn publish(&mut self, event: &Arc<Event>) {
-        for (_, listener) in &mut self.listeners {
-            listener.receive(event);
+        for (_, &mut (ref condition, ref mut listener)) in &mut self.listeners {
+            let should_send = match *condition {
+                SubscrFilter::Content { ty, ref filters } => {
+                    ty == event.tuple.ty_id &&
+                    {
+                        let context = SimpleContext::new(&event.tuple);
+                        let check_expr = |expr| context.evaluate_expression(expr).unwrap_bool();
+                        filters.iter().all(check_expr)
+                    }
+                }
+                SubscrFilter::Topic { ty } => ty == event.tuple.ty_id,
+                SubscrFilter::Any => true,
+            };
+
+            if should_send {
+                listener.receive(event);
+            }
         }
 
         let events = {
@@ -178,12 +191,11 @@ impl Engine for TRex {
             self.publish(event)
         }
     }
-    fn subscribe(&mut self, listener: Box<Listener>) -> usize {
+    fn subscribe(&mut self, condition: SubscrFilter, listener: Box<Listener>) -> usize {
         self.last_id += 1;
-        self.listeners.insert(self.last_id, listener);
+        // TODO typecheck condition expressions and check that they are local (no parameters!)
+        self.listeners.insert(self.last_id, (condition, listener));
         self.last_id
     }
-    fn unsubscribe(&mut self, listener_id: &usize) -> Option<Box<Listener>> {
-        self.listeners.remove(listener_id)
-    }
+    fn unsubscribe(&mut self, listener_id: usize) { self.listeners.remove(&listener_id); }
 }

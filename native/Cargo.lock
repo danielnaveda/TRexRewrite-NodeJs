@@ -204,7 +204,7 @@ dependencies = [
 
 [[package]]
 name = "ordered-float"
-version = "0.2.3"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "num-traits 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -301,7 +301,7 @@ name = "tesla"
 version = "0.1.0"
 dependencies = [
  "chrono 0.2.25 (registry+https://github.com/rust-lang/crates.io-index)",
- "ordered-float 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ordered-float 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -432,7 +432,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum num-iter 0.1.32 (registry+https://github.com/rust-lang/crates.io-index)" = "287a1c9969a847055e1122ec0ea7a5c5d6f72aad97934e131c83d5c08ab4e45c"
 "checksum num-traits 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)" = "a16a42856a256b39c6d3484f097f6713e14feacd9bfb02290917904fae46c81c"
 "checksum num_cpus 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8890e6084723d57d0df8d2720b0d60c6ee67d6c93e7169630e4371e88765dcad"
-"checksum ordered-float 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "cc511538298611a79d5a4ddfbb75315b866d942ed26a00bdc3590795c68b7279"
+"checksum ordered-float 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "37b8eade67f6fdf7e4049744d5439cfbfd33b684ef8991da4265eb5d5c9fb550"
 "checksum owning_ref 0.2.0 (git+https://github.com/dippi/owning-ref-rs.git?rev=refmut)" = "<none>"
 "checksum pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)" = "8cee804ecc7eaf201a4a207241472cc870e825206f6c031e3ee2a72fa425f2fa"
 "checksum r2d2 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)" = "4ecfed1b03be2e66624ec87cef173dad54253f25405bd3c918b321e4dda3ad32"

@@ -2,6 +2,7 @@
 
 extern crate rand;
 extern crate chrono;
+extern crate num_cpus;
 extern crate tesla;
 extern crate trex;
 
@@ -10,8 +11,8 @@ use rand::Rng;
 use std::sync::Arc;
 use std::sync::mpsc::sync_channel;
 use std::thread;
-use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Listener, Rule, Tuple,
-            TupleDeclaration, TupleType};
+use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Listener, Rule, SubscrFilter,
+            Tuple, TupleDeclaration, TupleType};
 use tesla::expressions::*;
 use tesla::predicates::*;
 use trex::*;
@@ -61,11 +62,11 @@ fn generate_length_rules<R: Rng>(rng: &mut R, cfg: &Config) -> Vec<Rule> {
     let mut rules = Vec::new();
     for i in 0..cfg.num_rules {
         let id = i % cfg.num_def + 1;
-        let constraint = Arc::new(Expression::BinaryOperation {
+        let constraint = Expression::BinaryOperation {
             operator: BinaryOperator::Equal,
             left: Box::new(Expression::Reference { attribute: 0 }),
             right: Box::new(Expression::Immediate { value: 1.into() }),
-        });
+        };
         let root_pred = Predicate {
             ty: PredicateType::Trigger { parameters: Vec::new() },
             tuple: ConstrainedTuple {
@@ -170,7 +171,7 @@ fn execute_bench_length(cfg: &Config) {
     let evts = generate_length_events(&mut rng, &cfg);
 
     let providers: Vec<Box<NodeProvider>> = vec![Box::new(StackProvider)];
-    let mut engine = TRex::new(4, providers);
+    let mut engine = TRex::new(num_cpus::get(), providers);
     for decl in decls {
         engine.declare(decl);
     }
@@ -178,6 +179,11 @@ fn execute_bench_length(cfg: &Config) {
         engine.define(rule);
     }
     // engine.subscribe(Box::new(DebugListener));
+    engine.subscribe(SubscrFilter::Any,
+                     Box::new(CountListener {
+                         count: 0,
+                         duration: cfg.num_events / cfg.evts_per_sec,
+                     }));
 
     let start = UTC::now();
 
@@ -205,8 +211,8 @@ fn execute_bench_length(cfg: &Config) {
 
 fn main() {
     let mut cfg = Config {
-        num_rules: 1000,
-        num_def: 100,
+        num_rules: 650,
+        num_def: 65,
         num_pred: 3,
         num_events: 40_000,
         each_prob: 1.0,
@@ -218,18 +224,20 @@ fn main() {
         evts_per_sec: 10000,
     };
 
-    let frequencies = (4000...10_000).step_by(2000);
-    let windows = (2...10).step_by(4);
-
-    println!("");
-    for freq in frequencies {
-        cfg.evts_per_sec = freq;
-        println!("- Frequency: {:5} evt/sec", freq);
-        for avg_win in windows.clone() {
-            cfg.max_win = Duration::seconds(avg_win + 1 as i64);
-            cfg.min_win = Duration::seconds(avg_win - 1 as i64);
-            print!(" > Avg Window: {:2}s => ", avg_win);
-            execute_bench_length(&cfg);
+    for queue_bound in vec![true, false] {
+        println!("");
+        for freq in vec![600usize, 800, 1000, 1500, 2500, 4000] {
+            cfg.num_events = freq * 60;
+            cfg.queue_len = if queue_bound { freq / 10 } else { cfg.num_events + 1 };
+            cfg.evts_per_sec = freq;
+            println!("");
+            println!("- Frequency: {:5} evt/sec | Queue len: {:5}", freq, cfg.queue_len);
+            for avg_win in (2...10).step_by(4) {
+                cfg.max_win = Duration::seconds(avg_win + 1 as i64);
+                cfg.min_win = Duration::seconds(avg_win - 1 as i64);
+                print!(" > Avg Window: {:2}s => ", avg_win);
+                execute_bench_length(&cfg);
+            }
         }
     }
 }

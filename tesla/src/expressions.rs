@@ -11,8 +11,8 @@ pub enum BasicType {
 
 #[derive(Clone, Debug)]
 pub enum Value {
-    Int(i32),
-    Float(f32),
+    Int(i64),
+    Float(f64),
     Bool(bool),
     Str(String),
 }
@@ -70,10 +70,10 @@ pub enum Expression {
 // TODO think about utility of the following functions
 
 impl Value {
-    pub fn unwrap_int(&self) -> i32 {
+    pub fn unwrap_int(&self) -> i64 {
         if let Value::Int(value) = *self { value } else { panic!("Wrong Value unwrap") }
     }
-    pub fn unwrap_float(&self) -> f32 {
+    pub fn unwrap_float(&self) -> f64 {
         if let Value::Float(value) = *self { value } else { panic!("Wrong Value unwrap") }
     }
     pub fn unwrap_bool(&self) -> bool {
@@ -84,12 +84,12 @@ impl Value {
     }
 }
 
-impl From<i32> for Value {
-    fn from(val: i32) -> Self { Value::Int(val) }
+impl From<i64> for Value {
+    fn from(val: i64) -> Self { Value::Int(val) }
 }
 
-impl From<f32> for Value {
-    fn from(val: f32) -> Self { Value::Float(val) }
+impl From<f64> for Value {
+    fn from(val: f64) -> Self { Value::Float(val) }
 }
 
 impl From<bool> for Value {

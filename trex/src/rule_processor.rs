@@ -60,7 +60,7 @@ impl Trigger {
     pub fn new(predicate: &Predicate) -> Self { Trigger { predicate: predicate.clone() } }
 
     fn is_satisfied(&self, context: &CompleteContext) -> bool {
-        let check_expr = |expr: &Arc<_>| context.evaluate_expression(expr).unwrap_bool();
+        let check_expr = |expr| context.evaluate_expression(expr).unwrap_bool();
         self.predicate.tuple.constraints.iter().all(check_expr)
     }
 

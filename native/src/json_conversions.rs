@@ -31,7 +31,7 @@ impl JsonConversion for Event {
 
         for data_e in data_a.iter(){//Json
             if data_e.as_string().unwrap().parse::<i32>().is_ok() {
-                vec_value.push(Value::Int(data_e.as_string().unwrap().parse::<i32>().unwrap()));
+                vec_value.push(Value::Int(data_e.as_string().unwrap().parse::<i64>().unwrap()));
             } else {
                 vec_value.push(Value::Str(String::from(data_e.as_string().unwrap())));
             }
@@ -80,12 +80,12 @@ impl JsonConversion for Value {
         match json_i.as_object().unwrap().get("type").unwrap().as_string().unwrap() {
             "Int" => {
                 Value::Int(
-                    json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<i32>().unwrap()
+                    json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<i64>().unwrap()
                 )
             },
             "Float" => {
                 Value::Float(
-                    json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<f32>().unwrap()
+                    json_i.as_object().unwrap().get("value").unwrap().as_string().unwrap().parse::<f64>().unwrap()
                 )
             },
             "Bool" => {
@@ -302,7 +302,7 @@ impl JsonConversion for Rule {
         println!("Rule::from_json: {:?}\n", json_i);
 
         let mut predicates : Vec<Predicate> = Vec::new();
-        let mut filters : Vec<Arc<Expression>> = Vec::new();
+        let mut filters : Vec<Expression> = Vec::new();
         let mut consumings : Vec<usize> = Vec::new();
 
         for predicate in json_i.as_object().unwrap().get("predicates").unwrap().as_array().unwrap().iter() {
@@ -310,7 +310,7 @@ impl JsonConversion for Rule {
         }
 
         for filter in json_i.as_object().unwrap().get("filters").unwrap().as_array().unwrap().iter() {
-            filters.push(Arc::new(Expression::from_json(filter.clone())));
+            filters.push(Expression::from_json(filter.clone()));
         }
 
         for consuming in json_i.as_object().unwrap().get("consuming").unwrap().as_array().unwrap().iter() {
@@ -394,7 +394,7 @@ impl JsonConversion for ParameterDeclaration {
         println!("ParameterDeclaration::from_json: {:?}\n", json_i);
         ParameterDeclaration {
             name: String::from(json_i.as_object().unwrap().get("name").unwrap().as_string().unwrap()),
-            expression: Arc::new(Expression::from_json(json_i.as_object().unwrap().get("expression").unwrap().clone())),
+            expression: Expression::from_json(json_i.as_object().unwrap().get("expression").unwrap().clone()),
         }
     }
 }
@@ -529,10 +529,10 @@ impl JsonConversion for ConstrainedTuple {
     fn from_json(json_i : Json) -> Self {
         println!("ConstrainedTuple::from_json: {:?}\n", json_i);
 
-        let mut expressions : Vec<Arc<Expression>> = Vec::new();
+        let mut expressions : Vec<Expression> = Vec::new();
 
         for expression in json_i.as_object().unwrap().get("constraints").unwrap().as_array().unwrap().iter() {
-            expressions.push(Arc::new(Expression::from_json(expression.clone())));
+            expressions.push(Expression::from_json(expression.clone()));
         }
 
         ConstrainedTuple {
