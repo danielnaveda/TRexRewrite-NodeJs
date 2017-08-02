@@ -56,7 +56,7 @@ pub fn get_connection(uuid: Uuid) {
     init_queue(uuid.to_string());
 }
 
-
+// Initialize the engine with some events and a rule
 pub fn init_examples(){
     println!("Rust::initialize()");
     let s = singleton();

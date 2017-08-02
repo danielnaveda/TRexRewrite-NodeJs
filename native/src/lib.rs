@@ -49,8 +49,6 @@ fn w_init_examples(call: Call) -> JsResult<JsString> {
 fn w_clear_status(call: Call) -> JsResult<JsString> {
     let scope = call.scope;
 
-    // init_examples();
-
     if write_status().is_err() {
         print!("Error processing write_status()");
     }
