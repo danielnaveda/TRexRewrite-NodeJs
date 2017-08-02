@@ -2,14 +2,20 @@
 
 Implement an HTTP proxy using NodeJs and Neon for TRexRewrite.
 
-## Installation
+## Prerequisites
 
-Make sure to have installed these three main dependencies:
-
+#### Server side
 * [neon](https://github.com/neon-bindings/neon)
 * [Rust](https://www.rust-lang.org)
 * [node](https://nodejs.org)
+* [sqlite]()
 
+#### Client side
+* [ANTLR4](https://github.com/antlr/antlr4/blob/master/doc/getting-started.md)
+* [json-simple-1.1.jar](http://www.java2s.com/Code/JarDownload/json-simple/json-simple-1.1.jar.zip)
+
+
+## Server Installation
 
 To build the project, execute:
 ```
@@ -58,8 +64,6 @@ npm install body-parser
 npm install colors
 ```
 
-
-
 ## Run Server
 Once installed and in the project folder, run:
 ```
@@ -67,13 +71,32 @@ node lib/index.js [testing]
 ```
 Note: to run the test use the optional parameter "testing" (i.e. "node lib/index.js testing")
 
+## Client Installation
+
+Follow instructions:
+
+[Build Parser](https://github.com/daniel2121/TRexRewrite-NodeJs/blob/master/parser/readme.md)
+
+
 ## Run test
 Using a different terminal, run:
 
 ```
 cd scripts/tools/
 
-./testing_fire.sh
+./testing_fire_from_scratch.sh
+```
+
+## Tested on
+```
+Ubuntu 16.04 LTS
+Memory: 6GB
+Processor: Intel® Core™ i5-3210M CPU @ 2.50GHz × 4
+OS type: 64-bit
+node version: v4.2.6
+rustc version: rustc 1.15.0-nightly (daf8c1dfc 2016-12-05)
+neon version: 0.1.7
+SQLite version: 3.11.0
 ```
 
 ## Reference
