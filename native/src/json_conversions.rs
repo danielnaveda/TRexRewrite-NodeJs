@@ -153,6 +153,8 @@ impl JsonConversion for Expression {
             let tuple_name = attribute_t_v.split("::").nth(0).unwrap();
             let attr_name = attribute_t_v.split("::").nth(1).unwrap();
 
+            println!("{:?}::{:?} = {:?}", tuple_name, attr_name,get_tupleattr_id(tuple_name, attr_name).unwrap());
+
             Expression::Reference {
                 attribute: get_tupleattr_id(tuple_name, attr_name).unwrap()
             }
