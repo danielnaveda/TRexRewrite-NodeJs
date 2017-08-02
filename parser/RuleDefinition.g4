@@ -85,7 +85,7 @@ emit: 'emit' (CAPITAL_IDENTIFIER | LOWER_IDENTIFIER | IMMEDIATE) evaluations
 }
 ;
 //evaluations: '(' evaluation evaluations_tail ')';
-evaluations: '(' evaluation (',' evaluation) ')';
+evaluations: '(' evaluation (',' evaluation)* ')';
 //evaluations_tail: ',' evaluation evaluations_tail;
 //evaluation: LOWER_IDENTIFIER '=' expression;
 evaluation: expression;
@@ -114,7 +114,8 @@ predicate_body: (CAPITAL_IDENTIFIER | LOWER_IDENTIFIER | IMMEDIATE) assignments 
   "}";*/
 };
 //assignments: '[' assignment assignments_tail ']';
-assignments: '[' assignment']';
+/*assignments: '[' assignment']';*/
+assignments: '[' assignment (',' assignment)* ']';
 //assignments_tail: ',' assignment assignments_tail;
 //assignment: parameter '=' expression;
 assignment: parameter '=' parameter;

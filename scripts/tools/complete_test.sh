@@ -6,9 +6,10 @@ printf "================= Testing TRex ================="; echo
 ../operations/7_declare_event.sh "declare eventtwo(aint: int, afloat: float, abool: bool, astring: string) with id 1"
 
 ../operations/7_declare_event.sh "declare eventthree(aint: int, afloat: float, abool: bool, astring: string) with id 2"
-exit
 
-../operations/8_define_rule.sh "from eventone[x = area]() as smk and last eventtwo[y = value](area == x, value > 45) as temp within 5min from smk emit eventthree(area = x, temp = y)"
+# ../operations/8_define_rule.sh "from eventone[x = aint, x2 = afloat, x3 = abool, x4 = astring]() as eone and last eventtwo[y = aint]() as etwo within 5min from eone emit eventthree(aint = x, afloat = x2, abool = x3, astring = x4)"
+../operations/8_define_rule.sh "from eventone[xone = aint, xtwo = afloat, xthree = abool, xfour = astring]() as eone and last eventtwo[y = aint]() as etwo within 5min from eone emit eventthree(aint = xone, afloat = xtwo, abool = xthree, astring = xfour)"
+exit
 
 # Get connection ID
 OUTPUT=$(curl --fail --silent --show-error http://127.0.0.1:8888/connections)
