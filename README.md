@@ -73,6 +73,13 @@ Note: to run the test use the optional parameter "testing" (i.e. "node lib/index
 
 ## Client Installation
 
+sudo cp parser/json-simple/json-simple-1.1.jar /usr/local/lib/
+
+cd /usr/local/lib
+
+sudo curl -O http://www.antlr.org/download/antlr-4.5.3-complete.jar
+
+
 Follow instructions:
 
 [Build Parser](https://github.com/daniel2121/TRexRewrite-NodeJs/blob/master/parser/readme.md)
