@@ -13,7 +13,7 @@ Implement an HTTP proxy using NodeJs and Neon for TRexRewrite.
 #### Client side
 * [ANTLR4](https://github.com/antlr/antlr4/blob/master/doc/getting-started.md)
 * [json-simple-1.1.jar](http://www.java2s.com/Code/JarDownload/json-simple/json-simple-1.1.jar.zip)
-
+* jdk
 
 ## Server Installation
 
@@ -109,6 +109,20 @@ SQLite version: 3.11.0
 openjdk version "1.8.0_131"
 OpenJDK Runtime Environment (build 1.8.0_131-8u131-b11-2ubuntu1.16.04.3-b11)
 OpenJDK 64-Bit Server VM (build 25.131-b11, mixed mode)
+```
+
+```
+OS: Linux Mint 18.1 Cinnamon 64-bit
+Version: 3.2.7
+
+Linux Kernel: 4.4.0-53-generic
+Processor: Intel Celeron CPU N3050 @ 1.60GHzx2
+Memory: 1.8GiB
+Hard Drives: 28.0 GB
+
+node version: v.4.2.6
+rustc version: rustc 1.16.0 (30cf806ef 2017-03-10)
+neon version: 0.1.13
 ```
 
 ## Reference
