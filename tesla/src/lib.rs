@@ -38,7 +38,7 @@ pub struct EventTemplate {
 #[derive(Clone, Debug)]
 pub struct Rule {
     pub predicates: Vec<Predicate>,
-    pub filters: Vec<Expression>,
+    pub filters: Vec<Arc<Expression>>,
     pub event_template: EventTemplate,
     pub consuming: Vec<usize>,
 }
@@ -55,15 +55,31 @@ pub struct Event {
     pub time: DateTime<UTC>,
 }
 
-#[derive(Clone, Debug)]
-pub enum SubscrFilter {
-    Any,
-    Topic { ty: usize },
-    Content { ty: usize, filters: Vec<Expression> },
+pub trait ClonableIterator<'a>: Iterator {
+    fn clone_iter(&self) -> Box<ClonableIterator<'a, Item = Self::Item> + 'a>;
 }
+
+impl<'a, T> ClonableIterator<'a> for T
+    where T: Iterator + Clone + 'a
+{
+    fn clone_iter(&self) -> Box<ClonableIterator<'a, Item = Self::Item> + 'a> {
+        Box::new(self.clone())
+    }
+}
+
+impl<'a, T: 'a> Clone for Box<ClonableIterator<'a, Item = T> + 'a> {
+    fn clone(&self) -> Self { (**self).clone_iter() }
+}
+
+pub type EventsIterator<'a> = Box<ClonableIterator<'a, Item = &'a Arc<Event>> + 'a>;
 
 pub trait Listener {
     fn receive(&mut self, event: &Arc<Event>);
+    fn receive_all(&mut self, events: EventsIterator) {
+        for event in events {
+            self.receive(event);
+        }
+    }
 }
 
 pub trait Engine {
@@ -72,6 +88,11 @@ pub trait Engine {
     fn declare(&mut self, tuple: TupleDeclaration);
     fn define(&mut self, rule: Rule);
     fn publish(&mut self, event: &Arc<Event>);
-    fn subscribe(&mut self, condition: SubscrFilter, listener: Box<Listener>) -> usize;
-    fn unsubscribe(&mut self, listener_id: usize);
+    fn publish_all(&mut self, events: EventsIterator) {
+        for event in events {
+            self.publish(event);
+        }
+    }
+    fn subscribe(&mut self, listener: Box<Listener>) -> usize;
+    fn unsubscribe(&mut self, listener_id: &usize) -> Option<Box<Listener>>;
 }

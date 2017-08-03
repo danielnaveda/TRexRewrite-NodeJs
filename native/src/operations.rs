@@ -10,7 +10,7 @@ use rustc_serialize::json::Json;
 use uuid::Uuid;
 use chrono::{Duration};
 use std::sync::Arc;
-use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Rule, TupleDeclaration,TupleType, SubscrFilter};
+use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Rule, TupleDeclaration,TupleType};
 use tesla::expressions::{BasicType, BinaryOperator, Expression, Value};
 use tesla::predicates::{ConstrainedTuple, EventSelection, ParameterDeclaration, Predicate,PredicateType, Timing, TimingBound};
 use trex::TRex;
@@ -120,9 +120,9 @@ pub fn init_examples(){
                     parameters: vec![
                         ParameterDeclaration {
                             name: "x".to_owned(),
-                            expression: Expression::Reference {
+                            expression: Arc::new(Expression::Reference {
                                 attribute: 0,
-                            },
+                            }),
                         },
                     ],
                 },
@@ -138,9 +138,9 @@ pub fn init_examples(){
                     parameters: vec![
                         ParameterDeclaration {
                             name: "y".to_owned(),
-                            expression: Expression::Reference {
+                            expression: Arc::new(Expression::Reference {
                                 attribute: 1,
-                            },
+                            }),
                         },
                     ],
                     timing: Timing {
@@ -153,7 +153,7 @@ pub fn init_examples(){
                 tuple: ConstrainedTuple {
                     ty_id: 1,
                     constraints: vec![
-                        Expression::BinaryOperation {
+                        Arc::new(Expression::BinaryOperation {
                             operator: BinaryOperator::Equal,
                             left: Box::new(Expression::Reference {
                                 attribute: 0,
@@ -162,8 +162,8 @@ pub fn init_examples(){
                                 predicate: 0,
                                 parameter: 0,
                             }),
-                        },
-                        Expression::BinaryOperation {
+                        }),
+                        Arc::new(Expression::BinaryOperation {
                             operator: BinaryOperator::GreaterThan,
                             left: Box::new(Expression::Reference {
                                 attribute: 1,
@@ -171,7 +171,7 @@ pub fn init_examples(){
                             right: Box::new(Expression::Immediate {
                                 value: Value::Int(45),
                             }),
-                        },
+                        }),
                     ],
                     alias: "temp".to_owned(),
                 },
@@ -230,7 +230,7 @@ pub fn subscribe(conn_id: String, event_type: usize) -> usize {
     let mut engine = s.inner.lock().unwrap();
 
     // TODO: use event_type in the following function to avoid subscribing to all the events
-    engine.subscribe(SubscrFilter::Any, Box::new(QueueListener{conn_id : conn_id}))
+    engine.subscribe(Box::new(QueueListener{conn_id : conn_id}))
 }
 
 pub fn unsubscribe(conn_id: usize){
@@ -238,7 +238,7 @@ pub fn unsubscribe(conn_id: usize){
     let s = singleton();
     let mut engine = s.inner.lock().unwrap();
 
-    engine.unsubscribe(conn_id);
+    engine.unsubscribe(&conn_id);
 }
 
 pub fn publish(conn_id: usize ,event: Json){

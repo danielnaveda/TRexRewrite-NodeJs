@@ -2,12 +2,18 @@ use std::collections::{BTreeSet, HashMap};
 use std::collections::hash_map::RandomState;
 use std::hash::{BuildHasher, Hash};
 
-use super::gdsf_cache::HasSize;
-
 // TODO clean everything up (maybe using hand crafted collections)
 
+pub trait HasSize {
+    fn size(&self) -> usize;
+}
+
+pub trait HasCost {
+    fn cost(&self) -> usize;
+}
+
 struct StorageEntry<K, V>
-    where V: HasSize
+    where V: HasSize + HasCost
 {
     key: *const K,
     value: V,
@@ -16,7 +22,7 @@ struct StorageEntry<K, V>
 }
 
 impl<K, V> StorageEntry<K, V>
-    where V: HasSize
+    where V: HasSize + HasCost
 {
     fn new(key: *const K, value: V, clock: usize) -> Self {
         StorageEntry {
@@ -26,7 +32,9 @@ impl<K, V> StorageEntry<K, V>
             clock: clock,
         }
     }
-    fn priority(&self) -> usize { self.clock + 1000_000 / (self.value.size() + 1) }
+    fn priority(&self) -> usize {
+        self.clock + self.frequency * self.value.cost() / (self.value.size() + 1)
+    }
     fn update(&mut self, clock: usize) -> usize {
         self.clock = clock;
         self.frequency += 1;
@@ -35,9 +43,9 @@ impl<K, V> StorageEntry<K, V>
 }
 
 // Greedy Dual Size Frequency cache
-pub struct GDS1Cache<K, V, S = RandomState>
+pub struct GDSFCache<K, V, S = RandomState>
     where K: Eq + Hash,
-          V: HasSize,
+          V: HasSize + HasCost,
           S: BuildHasher
 {
     capacity: usize,
@@ -47,20 +55,20 @@ pub struct GDS1Cache<K, V, S = RandomState>
     clock: usize,
 }
 
-unsafe impl<K, V, S> Send for GDS1Cache<K, V, S>
+unsafe impl<K, V, S> Send for GDSFCache<K, V, S>
     where K: Eq + Hash + Send,
-          V: HasSize + Send,
+          V: HasSize + HasCost + Send,
           S: BuildHasher + Send
 {
 }
 
-impl<K, V, S> GDS1Cache<K, V, S>
+impl<K, V, S> GDSFCache<K, V, S>
     where K: Eq + Hash,
-          V: HasSize,
+          V: HasSize + HasCost,
           S: BuildHasher + Default
 {
     pub fn new(capacity: usize) -> Self {
-        GDS1Cache {
+        GDSFCache {
             capacity: capacity,
             used: 0,
             storage: HashMap::default(),
@@ -70,9 +78,9 @@ impl<K, V, S> GDS1Cache<K, V, S>
     }
 }
 
-impl<K, V, S> GDS1Cache<K, V, S>
+impl<K, V, S> GDSFCache<K, V, S>
     where K: Eq + Hash,
-          V: HasSize,
+          V: HasSize + HasCost,
           S: BuildHasher
 {
     pub fn contains_key(&self, key: &K) -> bool { self.storage.contains_key(key) }
@@ -142,7 +150,7 @@ impl<K, V, S> GDS1Cache<K, V, S>
 
 #[cfg(test)]
 mod tests {
-    use super::{GDS1Cache, HasCost, HasSize, StorageEntry};
+    use super::{GDSFCache, HasCost, HasSize, StorageEntry};
 
     #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
     struct TestStruct {
@@ -195,7 +203,7 @@ mod tests {
 
     #[test]
     fn successful_insertion() {
-        let mut cache = GDS1Cache::<usize, TestStruct>::new(100);
+        let mut cache = GDSFCache::<usize, TestStruct>::new(100);
         let mut value = TestStruct {
             id: 1,
             cost: 1,
@@ -213,7 +221,7 @@ mod tests {
 
     #[test]
     fn unsuccessful_insertion() {
-        let mut cache = GDS1Cache::<usize, TestStruct>::new(100);
+        let mut cache = GDSFCache::<usize, TestStruct>::new(100);
         let mut value = TestStruct {
             id: 1,
             cost: 1,
@@ -231,7 +239,7 @@ mod tests {
 
     #[test]
     fn single_eviction() {
-        let mut cache = GDS1Cache::<usize, TestStruct>::new(3);
+        let mut cache = GDSFCache::<usize, TestStruct>::new(3);
         for i in 1..4 {
             cache.insert(i,
                          TestStruct {
@@ -252,7 +260,7 @@ mod tests {
 
     #[test]
     fn multiple_eviction() {
-        let mut cache = GDS1Cache::<usize, TestStruct>::new(3);
+        let mut cache = GDSFCache::<usize, TestStruct>::new(3);
         for i in 1..4 {
             cache.insert(i,
                          TestStruct {

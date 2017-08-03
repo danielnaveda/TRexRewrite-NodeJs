@@ -15,6 +15,7 @@ use tesla::{AttributeDeclaration, Engine, Event, EventTemplate, Listener, Rule, 
 use tesla::expressions::*;
 use tesla::predicates::*;
 use trex::*;
+use trex::sqlite::{CacheOwnership, CacheType, SqliteConfig, SqliteProvider};
 use trex::stack::StackProvider;
 
 struct Config {
@@ -35,7 +36,7 @@ fn generate_length_declarations<R: Rng>(rng: &mut R, cfg: &Config) -> Vec<TupleD
     let mut decls = Vec::new();
     for i in 0..cfg.num_def {
         let id = i + 1;
-        for j in 0..cfg.num_pred {
+        for j in 0..(cfg.num_pred - 1) {
             let attr = AttributeDeclaration {
                 name: rng.gen_ascii_chars().take(5).collect(),
                 ty: BasicType::Int,
@@ -48,10 +49,26 @@ fn generate_length_declarations<R: Rng>(rng: &mut R, cfg: &Config) -> Vec<TupleD
             });
         }
         decls.push(TupleDeclaration {
+            ty: TupleType::Static,
+            id: id * 1000 + (cfg.num_pred - 1),
+            name: "track".to_owned(),
+            attributes: vec![AttributeDeclaration {
+                                 name: "Name".to_owned(),
+                                 ty: BasicType::Str,
+                             },
+                             AttributeDeclaration {
+                                 name: "AlbumId".to_owned(),
+                                 ty: BasicType::Int,
+                             }],
+        });
+        decls.push(TupleDeclaration {
             ty: TupleType::Event,
             id: id,
             name: rng.gen_ascii_chars().take(5).collect(),
-            attributes: Vec::new(),
+            attributes: vec![AttributeDeclaration {
+                                 name: "Name".to_owned(),
+                                 ty: BasicType::Str,
+                             }],
         });
     }
     decls
@@ -75,7 +92,7 @@ fn generate_length_rules<R: Rng>(rng: &mut R, cfg: &Config) -> Vec<Rule> {
             },
         };
         let mut predicates = vec![root_pred];
-        for j in 1..cfg.num_pred {
+        for j in 1..(cfg.num_pred - 1) {
             let rand = rng.gen_range(0.0, 1.0);
             let selection = if 0.0 <= rand && rand < cfg.each_prob {
                 EventSelection::Each
@@ -107,9 +124,29 @@ fn generate_length_rules<R: Rng>(rng: &mut R, cfg: &Config) -> Vec<Rule> {
                 },
             });
         }
+        predicates.push(Predicate {
+            ty: PredicateType::UnorderedStatic {
+                parameters: vec![ParameterDeclaration {
+                                     name: "x".to_owned(),
+                                     expression: Arc::new(Expression::Reference { attribute: 0 }),
+                                 }],
+            },
+            tuple: ConstrainedTuple {
+                ty_id: id * 1000 + (cfg.num_pred - 1),
+                constraints: vec![Arc::new(Expression::BinaryOperation {
+                                      operator: BinaryOperator::Equal,
+                                      left: Box::new(Expression::Reference { attribute: 1 }),
+                                      right: Box::new(Expression::Immediate { value: 1.into() }),
+                                  })],
+                alias: rng.gen_ascii_chars().take(5).collect(),
+            },
+        });
         let event_template = EventTemplate {
             ty_id: id,
-            attributes: Vec::new(),
+            attributes: vec![Expression::Parameter {
+                                 predicate: (cfg.num_pred - 1),
+                                 parameter: 0,
+                             }],
         };
         let consuming = if cfg.consuming { vec![1] } else { Vec::new() };
         let rule = Rule {
@@ -127,7 +164,7 @@ fn generate_length_events<R: Rng>(rng: &mut R, cfg: &Config) -> Vec<Event> {
     let mut events = Vec::new();
     for _ in 0..cfg.num_events {
         let def = rng.gen_range(0, cfg.num_def) + 1;
-        let state = rng.gen_range(0, cfg.num_pred);
+        let state = rng.gen_range(0, cfg.num_pred - 1);
         events.push(Event {
             tuple: Tuple {
                 ty_id: def * 1000 + state,
@@ -169,7 +206,16 @@ fn execute_bench_length(cfg: &Config) {
     let rules = generate_length_rules(&mut rng, &cfg);
     let evts = generate_length_events(&mut rng, &cfg);
 
-    let providers: Vec<Box<NodeProvider>> = vec![Box::new(StackProvider)];
+    let sqlite_config = SqliteConfig {
+        db_file: "./database.db".to_owned(),
+        pool_size: 10,
+        cache_size: 100,
+        cache_ownership: CacheOwnership::Shared,
+        cache_type: CacheType::Lru,
+    };
+    let sqlite_provider = Box::new(SqliteProvider::new(sqlite_config));
+    let providers: Vec<Box<NodeProvider>> = vec![Box::new(StackProvider), sqlite_provider];
+
     let mut engine = TRex::new(4, providers);
     for decl in decls {
         engine.declare(decl);
@@ -208,7 +254,7 @@ fn main() {
         num_rules: 1000,
         num_def: 100,
         num_pred: 3,
-        num_events: 40_000,
+        num_events: 20_000,
         each_prob: 1.0,
         first_prob: 0.0,
         min_win: Duration::seconds(0),
@@ -218,7 +264,7 @@ fn main() {
         evts_per_sec: 10000,
     };
 
-    let frequencies = (4000...10_000).step_by(2000);
+    let frequencies = (1000...10_000).step_by(3000);
     let windows = (2...10).step_by(4);
 
     println!("");
