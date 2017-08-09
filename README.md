@@ -35,12 +35,14 @@ Node Js:
 ```
 Neon:
 ```
-  sudo npm install -g neon-cli
+  sudo npm install -g neon-cli@0.1.7
 ```
 
 Rust:
 ```
   curl -sf -L https://static.rust-lang.org/rustup.sh | sh
+  rustup toolchain install nightly-2016-12-05
+  rustup default nightly-2016-12-05
 ```
 
 Sqlite:
