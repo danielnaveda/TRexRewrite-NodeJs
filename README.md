@@ -82,6 +82,8 @@ cd /usr/local/lib
 sudo curl -O http://www.antlr.org/download/antlr-4.5.3-complete.jar
 
 sudo apt-get install default-jdk
+
+sudo apt-get install jq
 ```
 Follow instructions:
 
